@@ -7,6 +7,11 @@ export interface ApertureConfig {
     token?: string;
     repositories: string[];
   };
+  gitlab: {
+    enabled: boolean;
+    token?: string;
+    projects: string[];
+  };
 }
 
 const config: ApertureConfig = {
@@ -32,6 +37,32 @@ const config: ApertureConfig = {
       // Add your repositories here
       // 'my-org/my-repo',
       // 'my-org/*',
+    ],
+  },
+  gitlab: {
+    // Enable GitLab integration - reads from GITLAB_ENABLED env var
+    enabled: process.env.GITLAB_ENABLED === 'true',
+    
+    // GitLab Personal Access Token - reads from GITLAB_TOKEN env var
+    // Required if enabled is true
+    // Token needs 'read_api' scope
+    token: process.env.GITLAB_TOKEN,
+    
+    // List of projects to scan for catalog-info.yaml files
+    // Format:
+    //   - "group/project" for a specific project
+    //   - "group/*" to scan all projects in a group (includes subgroups)
+    //   - "username/*" to scan all user projects
+    // Supports nested groups: "parent-group/sub-group/project"
+    // Examples:
+    //   "my-group/backend-api"              - Single project
+    //   "my-group/sub-group/frontend-app"   - Nested group project
+    //   "my-group/*"                        - All projects in group (includes subgroups)
+    //   "username/*"                        - All projects for a user
+    projects: [
+      // Add your projects here
+      // 'my-group/my-project',
+      // 'my-group/*',
     ],
   },
 };
