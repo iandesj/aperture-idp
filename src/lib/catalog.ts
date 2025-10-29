@@ -81,3 +81,85 @@ export function getComponentsBySystem(systemName: string): Component[] {
   const components = getAllComponents();
   return components.filter((c) => c.spec.system === systemName);
 }
+
+export function getComponentDependencies(componentName: string): Component[] {
+  const component = getComponentByName(componentName);
+  if (!component || !component.spec.dependsOn) {
+    return [];
+  }
+  
+  const allComponents = getAllComponents();
+  return component.spec.dependsOn
+    .map((depName) => allComponents.find((c) => c.metadata.name === depName))
+    .filter((c): c is Component => c !== undefined);
+}
+
+export function getComponentDependents(componentName: string): Component[] {
+  const allComponents = getAllComponents();
+  return allComponents.filter(
+    (c) => c.spec.dependsOn?.includes(componentName)
+  );
+}
+
+export function getDependencyGraph(componentName: string, depth: number = 1): {
+  component: Component;
+  dependencies: Component[];
+  dependents: Component[];
+  indirectDependencies: Component[];
+  indirectDependents: Component[];
+} {
+  const component = getComponentByName(componentName);
+  if (!component) {
+    return {
+      component: {} as Component,
+      dependencies: [],
+      dependents: [],
+      indirectDependencies: [],
+      indirectDependents: [],
+    };
+  }
+
+  const dependencies = getComponentDependencies(componentName);
+  const dependents = getComponentDependents(componentName);
+  
+  let indirectDependencies: Component[] = [];
+  let indirectDependents: Component[] = [];
+
+  if (depth > 0) {
+    const directDepNames = new Set(dependencies.map((d) => d.metadata.name));
+    dependencies.forEach((dep) => {
+      const depDeps = getComponentDependencies(dep.metadata.name);
+      depDeps.forEach((dd) => {
+        if (
+          dd.metadata.name !== componentName &&
+          !directDepNames.has(dd.metadata.name) &&
+          !indirectDependencies.some((id) => id.metadata.name === dd.metadata.name)
+        ) {
+          indirectDependencies.push(dd);
+        }
+      });
+    });
+
+    const directDepentNames = new Set(dependents.map((d) => d.metadata.name));
+    dependents.forEach((dependent) => {
+      const depDeps = getComponentDependents(dependent.metadata.name);
+      depDeps.forEach((dd) => {
+        if (
+          dd.metadata.name !== componentName &&
+          !directDepentNames.has(dd.metadata.name) &&
+          !indirectDependents.some((id) => id.metadata.name === dd.metadata.name)
+        ) {
+          indirectDependents.push(dd);
+        }
+      });
+    });
+  }
+
+  return {
+    component,
+    dependencies,
+    dependents,
+    indirectDependencies,
+    indirectDependents,
+  };
+}

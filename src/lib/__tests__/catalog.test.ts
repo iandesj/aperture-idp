@@ -8,7 +8,10 @@ import {
   getComponentByName,
   getAllSystems,
   getSystemStats,
-  getComponentsBySystem
+  getComponentsBySystem,
+  getComponentDependencies,
+  getComponentDependents,
+  getDependencyGraph
 } from '../catalog';
 import { Component } from '@/plugins/catalog/types';
 
@@ -381,6 +384,221 @@ describe('catalog', () => {
       const result = getComponentsBySystem('nonexistent');
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getComponentDependencies', () => {
+    it('should return direct dependencies of a component', () => {
+      const dep1 = { ...mockComponent1, metadata: { ...mockComponent1.metadata, name: 'dep-1' } };
+      const dep2 = { ...mockComponent2, metadata: { ...mockComponent2.metadata, name: 'dep-2' } };
+      const mainComponent = {
+        ...mockComponent3,
+        metadata: { ...mockComponent3.metadata, name: 'main' },
+        spec: { ...mockComponent3.spec, dependsOn: ['dep-1', 'dep-2'] },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['d1.yaml', 'd2.yaml', 'm.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      // Called twice: once for getComponentByName, once for the dependencies lookup
+      mockYaml.load
+        .mockReturnValueOnce(dep1)
+        .mockReturnValueOnce(dep2)
+        .mockReturnValueOnce(mainComponent)
+        .mockReturnValueOnce(dep1)
+        .mockReturnValueOnce(dep2)
+        .mockReturnValueOnce(mainComponent);
+
+      const result = getComponentDependencies('main');
+
+      expect(result).toHaveLength(2);
+      expect(result).toEqual([dep1, dep2]);
+    });
+
+    it('should return empty array when component has no dependencies', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockComponent1);
+
+      const result = getComponentDependencies('component-1');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when component not found', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockComponent1);
+
+      const result = getComponentDependencies('nonexistent');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter out non-existent dependencies', () => {
+      const dep1 = { ...mockComponent1, metadata: { ...mockComponent1.metadata, name: 'dep-1' } };
+      const mainComponent = {
+        ...mockComponent2,
+        metadata: { ...mockComponent2.metadata, name: 'main' },
+        spec: { ...mockComponent2.spec, dependsOn: ['dep-1', 'nonexistent'] },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['d1.yaml', 'm.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      // Called twice: once for getComponentByName, once for the dependencies lookup
+      mockYaml.load
+        .mockReturnValueOnce(dep1)
+        .mockReturnValueOnce(mainComponent)
+        .mockReturnValueOnce(dep1)
+        .mockReturnValueOnce(mainComponent);
+
+      const result = getComponentDependencies('main');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].metadata.name).toBe('dep-1');
+    });
+  });
+
+  describe('getComponentDependents', () => {
+    it('should return components that depend on the given component', () => {
+      const baseComponent = { ...mockComponent1, metadata: { ...mockComponent1.metadata, name: 'base' } };
+      const dependent1 = {
+        ...mockComponent2,
+        metadata: { ...mockComponent2.metadata, name: 'dependent-1' },
+        spec: { ...mockComponent2.spec, dependsOn: ['base'] },
+      };
+      const dependent2 = {
+        ...mockComponent3,
+        metadata: { ...mockComponent3.metadata, name: 'dependent-2' },
+        spec: { ...mockComponent3.spec, dependsOn: ['base', 'other'] },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['b.yaml', 'd1.yaml', 'd2.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load
+        .mockReturnValueOnce(baseComponent)
+        .mockReturnValueOnce(dependent1)
+        .mockReturnValueOnce(dependent2);
+
+      const result = getComponentDependents('base');
+
+      expect(result).toHaveLength(2);
+      expect(result.map(c => c.metadata.name)).toEqual(['dependent-1', 'dependent-2']);
+    });
+
+    it('should return empty array when no components depend on it', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load
+        .mockReturnValueOnce(mockComponent1)
+        .mockReturnValueOnce(mockComponent2);
+
+      const result = getComponentDependents('component-1');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getDependencyGraph', () => {
+    it('should return full dependency graph with direct dependencies and dependents', () => {
+      const dep = { ...mockComponent1, metadata: { ...mockComponent1.metadata, name: 'dependency' } };
+      const main = {
+        ...mockComponent2,
+        metadata: { ...mockComponent2.metadata, name: 'main' },
+        spec: { ...mockComponent2.spec, dependsOn: ['dependency'] },
+      };
+      const dependent = {
+        ...mockComponent3,
+        metadata: { ...mockComponent3.metadata, name: 'dependent' },
+        spec: { ...mockComponent3.spec, dependsOn: ['main'] },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['d.yaml', 'm.yaml', 'dep.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      // Called multiple times by getComponentByName, getComponentDependencies, getComponentDependents
+      mockYaml.load
+        .mockReturnValue(dep)
+        .mockReturnValue(main)
+        .mockReturnValue(dependent);
+      mockYaml.load
+        .mockImplementation(() => {
+          const calls = [dep, main, dependent];
+          return calls[mockYaml.load.mock.calls.length % 3];
+        });
+
+      const result = getDependencyGraph('main');
+
+      expect(result.component.metadata.name).toBe('main');
+      expect(result.dependencies).toHaveLength(1);
+      expect(result.dependencies[0].metadata.name).toBe('dependency');
+      expect(result.dependents).toHaveLength(1);
+      expect(result.dependents[0].metadata.name).toBe('dependent');
+    });
+
+    it('should return indirect dependencies when depth > 0', () => {
+      const indirectDep = { ...mockComponent1, metadata: { ...mockComponent1.metadata, name: 'indirect' } };
+      const directDep = {
+        ...mockComponent2,
+        metadata: { ...mockComponent2.metadata, name: 'direct' },
+        spec: { ...mockComponent2.spec, dependsOn: ['indirect'] },
+      };
+      const main = {
+        ...mockComponent3,
+        metadata: { ...mockComponent3.metadata, name: 'main' },
+        spec: { ...mockComponent3.spec, dependsOn: ['direct'] },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['i.yaml', 'd.yaml', 'm.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockImplementation(() => {
+        const calls = [indirectDep, directDep, main];
+        return calls[mockYaml.load.mock.calls.length % 3];
+      });
+
+      const result = getDependencyGraph('main', 1);
+
+      expect(result.dependencies).toHaveLength(1);
+      expect(result.dependencies[0].metadata.name).toBe('direct');
+      expect(result.indirectDependencies).toHaveLength(1);
+      expect(result.indirectDependencies[0].metadata.name).toBe('indirect');
+    });
+
+    it('should return empty graph when component not found', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockComponent1);
+
+      const result = getDependencyGraph('nonexistent');
+
+      expect(result.dependencies).toEqual([]);
+      expect(result.dependents).toEqual([]);
+      expect(result.indirectDependencies).toEqual([]);
+      expect(result.indirectDependents).toEqual([]);
+    });
+
+    it('should not include circular dependencies', () => {
+      const comp1 = {
+        ...mockComponent1,
+        metadata: { ...mockComponent1.metadata, name: 'comp1' },
+        spec: { ...mockComponent1.spec, dependsOn: ['comp2'] },
+      };
+      const comp2 = {
+        ...mockComponent2,
+        metadata: { ...mockComponent2.metadata, name: 'comp2' },
+        spec: { ...mockComponent2.spec, dependsOn: ['comp1'] },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockImplementation(() => {
+        const calls = [comp1, comp2];
+        return calls[mockYaml.load.mock.calls.length % 2];
+      });
+
+      const result = getDependencyGraph('comp1');
+
+      expect(result.component.metadata.name).toBe('comp1');
+      expect(result.dependencies).toHaveLength(1);
+      expect(result.dependents).toHaveLength(1);
     });
   });
 });
