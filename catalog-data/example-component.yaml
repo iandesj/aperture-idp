@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: example-component
+  description: An example component
+  tags:
+    - a-tag
+  links:
+    - url: https://example.com
+      title: Example Link
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:default/guest

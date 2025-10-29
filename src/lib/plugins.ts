@@ -1,7 +1,7 @@
 import { AperturePlugin } from "@/lib/plugins";
 // In the future, we will dynamically load plugins
 // For now, we manually import them
-// import { catalogPlugin } from "@/plugins/catalog";
+import { catalogPlugin } from "@/plugins/catalog";
 
 export interface AperturePlugin {
   id: string;
@@ -10,7 +10,7 @@ export interface AperturePlugin {
 }
 
 const plugins: AperturePlugin[] = [
-  // catalogPlugin
+  catalogPlugin
 ];
 
 export function getPlugins(): AperturePlugin[] {
