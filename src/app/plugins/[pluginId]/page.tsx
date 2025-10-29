@@ -1,8 +1,17 @@
-import { getPlugin } from "@/lib/plugins";
+import { getPlugin, getPlugins } from "@/lib/plugins";
 import { notFound } from "next/navigation";
 
-export default function PluginPage({ params }: { params: { pluginId: string } }) {
-  const plugin = getPlugin(params.pluginId);
+export async function generateStaticParams() {
+  const plugins = getPlugins();
+ 
+  return plugins.map((plugin) => ({
+    pluginId: plugin.id,
+  }));
+}
+
+export default async function PluginPage({ params }: { params: Promise<{ pluginId: string }> }) {
+  const { pluginId } = await params;
+  const plugin = getPlugin(pluginId);
 
   if (!plugin) {
     notFound();
