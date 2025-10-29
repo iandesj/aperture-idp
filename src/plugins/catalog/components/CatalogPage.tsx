@@ -5,10 +5,13 @@ import Link from "next/link";
 import { Component } from "../types";
 import { Search, X, Github, HardDrive } from "lucide-react";
 import { CatalogImport } from "@/components/CatalogImport";
-import { getComponentSource } from "@/lib/catalog";
+
+interface ComponentWithSource extends Component {
+  _source?: 'local' | 'github';
+}
 
 interface CatalogPageProps {
-  components: Component[];
+  components: ComponentWithSource[];
 }
 
 export function CatalogPage({ components: allComponents }: CatalogPageProps) {
@@ -187,7 +190,7 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredComponents.map((component) => {
-            const source = getComponentSource(component.metadata.name);
+            const source = component._source;
             return (
               <Link
                 key={component.metadata.name}
