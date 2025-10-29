@@ -12,3 +12,4 @@ spec:
   type: service
   lifecycle: experimental
   owner: user:default/guest
+  system: examples

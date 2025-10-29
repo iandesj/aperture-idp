@@ -16,4 +16,5 @@ spec:
   type: service
   lifecycle: deprecated
   owner: team-platform
+  system: core-infrastructure
 

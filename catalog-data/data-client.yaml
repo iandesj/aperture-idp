@@ -16,4 +16,5 @@ spec:
   type: library
   lifecycle: experimental
   owner: team-data
+  system: data-platform
 
