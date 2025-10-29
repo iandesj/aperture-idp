@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import SystemDetailPage from '../page';
 import * as catalogLib from '@/lib/catalog';
 import { notFound } from 'next/navigation';

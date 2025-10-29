@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import yaml from 'js-yaml';
 import { 
   getAllComponents, 
@@ -72,7 +71,7 @@ describe('catalog', () => {
 
   describe('getAllComponents', () => {
     it('should read and parse all YAML files from catalog-data directory', () => {
-      mockFs.readdirSync.mockReturnValue(['component-1.yaml', 'component-2.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['component-1.yaml', 'component-2.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValueOnce('yaml content 1').mockReturnValueOnce('yaml content 2');
       mockYaml.load.mockReturnValueOnce(mockComponent1).mockReturnValueOnce(mockComponent2);
 
@@ -86,7 +85,7 @@ describe('catalog', () => {
     });
 
     it('should return empty array when no files exist', () => {
-      mockFs.readdirSync.mockReturnValue([] as any);
+      mockFs.readdirSync.mockReturnValue([] as unknown as fs.Dirent[]);
 
       const result = getAllComponents();
 
@@ -100,7 +99,7 @@ describe('catalog', () => {
         'component-1.yaml',
         'component-2.yaml',
         'component-3.yaml',
-      ] as any);
+      ] as unknown as fs.Dirent[]);
       mockFs.readFileSync
         .mockReturnValueOnce('yaml 1')
         .mockReturnValueOnce('yaml 2')
@@ -136,7 +135,7 @@ describe('catalog', () => {
     });
 
     it('should handle empty catalog', () => {
-      mockFs.readdirSync.mockReturnValue([] as any);
+      mockFs.readdirSync.mockReturnValue([] as unknown as fs.Dirent[]);
 
       const stats = getCatalogStats();
 
@@ -152,7 +151,7 @@ describe('catalog', () => {
         'component-1.yaml',
         'component-2.yaml',
         'component-3.yaml',
-      ] as any);
+      ] as unknown as fs.Dirent[]);
       mockFs.readFileSync
         .mockReturnValueOnce('yaml 1')
         .mockReturnValueOnce('yaml 2')
@@ -179,7 +178,7 @@ describe('catalog', () => {
 
     it('should return 6 components by default', () => {
       mockFs.readdirSync.mockReturnValue(
-        Array.from({ length: 10 }, (_, i) => `component-${i}.yaml`) as any
+        Array.from({ length: 10 }, (_, i) => `component-${i}.yaml`) as unknown as fs.Dirent[]
       );
       mockFs.readFileSync.mockReturnValue('yaml content');
       mockYaml.load.mockReturnValue(mockComponent1);
@@ -196,7 +195,7 @@ describe('catalog', () => {
         'component-1.yaml',
         'component-2.yaml',
         'component-3.yaml',
-      ] as any);
+      ] as unknown as fs.Dirent[]);
       mockFs.readFileSync
         .mockReturnValueOnce('yaml 1')
         .mockReturnValueOnce('yaml 2')
@@ -243,7 +242,7 @@ describe('catalog', () => {
     };
 
     it('should return unique list of systems', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load
         .mockReturnValueOnce(mockComponentWithSystem)
@@ -257,7 +256,7 @@ describe('catalog', () => {
     });
 
     it('should return empty array when no components have systems', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockComponent1);
 
@@ -270,7 +269,7 @@ describe('catalog', () => {
       const mockWithZ = { ...mockComponent1, spec: { ...mockComponent1.spec, system: 'z-system' } };
       const mockWithA = { ...mockComponent2, spec: { ...mockComponent2.spec, system: 'a-system' } };
 
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockWithZ).mockReturnValueOnce(mockWithA);
 
@@ -295,7 +294,7 @@ describe('catalog', () => {
         spec: { ...mockComponent3.spec, system: 'system-a' },
       };
 
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load
         .mockReturnValueOnce(mockWithSystem1)
@@ -315,7 +314,7 @@ describe('catalog', () => {
     });
 
     it('should categorize components without system as uncategorized', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockComponent1);
 
@@ -332,7 +331,7 @@ describe('catalog', () => {
       const library = { ...mockComponent2, spec: { ...mockComponent2.spec, system: 'sys', type: 'library' } };
       const website = { ...mockComponent3, spec: { ...mockComponent3.spec, system: 'sys', type: 'website' } };
 
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load
         .mockReturnValueOnce(service)
@@ -363,7 +362,7 @@ describe('catalog', () => {
         spec: { ...mockComponent3.spec, system: 'system-a' },
       };
 
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load
         .mockReturnValueOnce(mockWithSystem1)
@@ -377,7 +376,7 @@ describe('catalog', () => {
     });
 
     it('should return empty array for non-existent system', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockComponent1);
 
@@ -397,7 +396,7 @@ describe('catalog', () => {
         spec: { ...mockComponent3.spec, dependsOn: ['dep-1', 'dep-2'] },
       };
 
-      mockFs.readdirSync.mockReturnValue(['d1.yaml', 'd2.yaml', 'm.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['d1.yaml', 'd2.yaml', 'm.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       // Called twice: once for getComponentByName, once for the dependencies lookup
       mockYaml.load
@@ -415,7 +414,7 @@ describe('catalog', () => {
     });
 
     it('should return empty array when component has no dependencies', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockComponent1);
 
@@ -425,7 +424,7 @@ describe('catalog', () => {
     });
 
     it('should return empty array when component not found', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockComponent1);
 
@@ -442,7 +441,7 @@ describe('catalog', () => {
         spec: { ...mockComponent2.spec, dependsOn: ['dep-1', 'nonexistent'] },
       };
 
-      mockFs.readdirSync.mockReturnValue(['d1.yaml', 'm.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['d1.yaml', 'm.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       // Called twice: once for getComponentByName, once for the dependencies lookup
       mockYaml.load
@@ -472,7 +471,7 @@ describe('catalog', () => {
         spec: { ...mockComponent3.spec, dependsOn: ['base', 'other'] },
       };
 
-      mockFs.readdirSync.mockReturnValue(['b.yaml', 'd1.yaml', 'd2.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['b.yaml', 'd1.yaml', 'd2.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load
         .mockReturnValueOnce(baseComponent)
@@ -486,7 +485,7 @@ describe('catalog', () => {
     });
 
     it('should return empty array when no components depend on it', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load
         .mockReturnValueOnce(mockComponent1)
@@ -512,7 +511,7 @@ describe('catalog', () => {
         spec: { ...mockComponent3.spec, dependsOn: ['main'] },
       };
 
-      mockFs.readdirSync.mockReturnValue(['d.yaml', 'm.yaml', 'dep.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['d.yaml', 'm.yaml', 'dep.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       // Called multiple times by getComponentByName, getComponentDependencies, getComponentDependents
       mockYaml.load
@@ -547,7 +546,7 @@ describe('catalog', () => {
         spec: { ...mockComponent3.spec, dependsOn: ['direct'] },
       };
 
-      mockFs.readdirSync.mockReturnValue(['i.yaml', 'd.yaml', 'm.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['i.yaml', 'd.yaml', 'm.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockImplementation(() => {
         const calls = [indirectDep, directDep, main];
@@ -563,7 +562,7 @@ describe('catalog', () => {
     });
 
     it('should return empty graph when component not found', () => {
-      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockReturnValueOnce(mockComponent1);
 
@@ -587,7 +586,7 @@ describe('catalog', () => {
         spec: { ...mockComponent2.spec, dependsOn: ['comp1'] },
       };
 
-      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as any);
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
       mockFs.readFileSync.mockReturnValue('yaml');
       mockYaml.load.mockImplementation(() => {
         const calls = [comp1, comp2];
