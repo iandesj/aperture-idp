@@ -92,8 +92,13 @@ export default async function ComponentDetailPage({
             {component.spec.system && (
               <div>
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">System</dt>
-                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                  {component.spec.system}
+                <dd className="mt-1">
+                  <Link
+                    href={`/systems/${component.spec.system}`}
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    {component.spec.system}
+                  </Link>
                 </dd>
               </div>
             )}
