@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: docs-site
+  description: Developer documentation portal powered by Docusaurus
+  tags:
+    - documentation
+    - docusaurus
+    - developer-experience
+  links:
+    - url: https://github.com/example/docs-site
+      title: Repository
+    - url: https://docs.example.com
+      title: Live Documentation
+spec:
+  type: website
+  lifecycle: production
+  owner: team-developer-experience
+

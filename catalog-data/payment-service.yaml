@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-service
+  description: Payment processing service with Stripe integration
+  tags:
+    - payments
+    - stripe
+    - python
+    - pci-compliant
+  links:
+    - url: https://github.com/example/payment-service
+      title: Repository
+    - url: https://docs.example.com/payments
+      title: API Documentation
+    - url: https://datadog.example.com/payments
+      title: Metrics
+spec:
+  type: service
+  lifecycle: production
+  owner: team-commerce
+  system: payment-infrastructure
+

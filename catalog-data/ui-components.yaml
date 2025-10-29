@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ui-components
+  description: Shared React component library with design system
+  tags:
+    - react
+    - design-system
+    - typescript
+    - storybook
+  links:
+    - url: https://github.com/example/ui-components
+      title: Repository
+    - url: https://storybook.example.com
+      title: Storybook
+    - url: https://www.npmjs.com/package/@example/ui-components
+      title: npm Package
+spec:
+  type: library
+  lifecycle: production
+  owner: team-design-systems
+

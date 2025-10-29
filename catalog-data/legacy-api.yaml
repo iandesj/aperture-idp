@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: legacy-api
+  description: Legacy REST API being phased out in favor of GraphQL
+  tags:
+    - rest
+    - legacy
+    - deprecated
+  links:
+    - url: https://github.com/example/legacy-api
+      title: Repository
+    - url: https://docs.example.com/legacy-api-migration
+      title: Migration Guide
+spec:
+  type: service
+  lifecycle: deprecated
+  owner: team-platform
+

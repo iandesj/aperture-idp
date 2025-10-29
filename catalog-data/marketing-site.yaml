@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: marketing-site
+  description: Public-facing marketing website built with Next.js
+  tags:
+    - nextjs
+    - marketing
+    - seo
+    - vercel
+  links:
+    - url: https://github.com/example/marketing-site
+      title: Repository
+    - url: https://example.com
+      title: Live Site
+    - url: https://vercel.com/example/marketing-site
+      title: Vercel Dashboard
+spec:
+  type: website
+  lifecycle: production
+  owner: team-marketing
+  system: public-web
+

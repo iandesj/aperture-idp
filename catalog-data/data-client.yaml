@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: data-client
+  description: TypeScript client library for interacting with data APIs
+  tags:
+    - typescript
+    - sdk
+    - api-client
+  links:
+    - url: https://github.com/example/data-client
+      title: Repository
+    - url: https://docs.example.com/data-client
+      title: Documentation
+spec:
+  type: library
+  lifecycle: experimental
+  owner: team-data
+

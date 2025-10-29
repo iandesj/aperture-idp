@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: api-gateway
+  description: Central API gateway handling authentication and routing
+  tags:
+    - nodejs
+    - gateway
+    - microservices
+  links:
+    - url: https://github.com/example/api-gateway
+      title: Repository
+    - url: https://docs.example.com/api-gateway
+      title: Documentation
+    - url: https://grafana.example.com/api-gateway
+      title: Monitoring
+spec:
+  type: service
+  lifecycle: production
+  owner: team-platform
+  system: core-infrastructure
+

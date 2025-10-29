@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: auth-service
+  description: Authentication and authorization service with OAuth2 support
+  tags:
+    - security
+    - auth
+    - golang
+  links:
+    - url: https://github.com/example/auth-service
+      title: Repository
+    - url: https://auth.example.com
+      title: Live Service
+spec:
+  type: service
+  lifecycle: production
+  owner: team-security
+  system: authentication
+
