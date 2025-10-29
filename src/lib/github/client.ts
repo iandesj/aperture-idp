@@ -171,25 +171,41 @@ export class GitHubClient {
     }
   }
 
-  async listOrgRepositories(org: string): Promise<string[]> {
+  async listRepositories(ownerOrOrg: string): Promise<string[]> {
     const repositories: string[] = [];
     let page = 1;
     const perPage = 100;
 
     try {
+      // Try both org and user endpoints
+      // First try as organization
+      let isOrg = true;
+      let baseEndpoint = `/orgs/${ownerOrOrg}/repos`;
+      
+      // Check if it's an org or user by trying org endpoint first
+      const testUrl = `${this.baseUrl}${baseEndpoint}?per_page=1`;
+      const testResponse = await this.fetch(testUrl);
+      
+      if (testResponse.status === 404) {
+        // Not an org, try as user
+        isOrg = false;
+        baseEndpoint = `/users/${ownerOrOrg}/repos`;
+      }
+
+      // Now paginate through all repositories
       while (true) {
-        const url = `${this.baseUrl}/orgs/${org}/repos?per_page=${perPage}&page=${page}&type=all`;
+        const url = `${this.baseUrl}${baseEndpoint}?per_page=${perPage}&page=${page}&type=all`;
         const response = await this.fetch(url);
 
         if (!response.ok) {
           if (response.status === 404) {
             throw new GitHubClientError(
-              `Organization "${org}" not found or not accessible`,
+              `Owner/Organization "${ownerOrOrg}" not found or not accessible`,
               404
             );
           }
           throw new GitHubClientError(
-            `Failed to list repositories for org "${org}": ${response.status}`,
+            `Failed to list repositories for "${ownerOrOrg}": ${response.status}`,
             response.status
           );
         }

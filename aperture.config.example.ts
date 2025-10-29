@@ -21,12 +21,13 @@ const config: ApertureConfig = {
     // List of repositories to scan for catalog-info.yaml files
     // Format: 
     //   - "owner/repo" for a specific repository
-    //   - "org/*" to scan all repositories in an organization
+    //   - "owner/*" to scan all repositories (works for orgs and users)
     // Examples:
     //   "my-org/backend-api"        - Single repository
     //   "my-org/frontend-app"       - Single repository  
     //   "my-org/*"                  - All repos in organization
-    //   "username/personal-project" - Personal repository
+    //   "username/*"                - All repos for a user
+    //   "username/personal-project" - Single user repository
     repositories: [
       // Add your repositories here
       // 'my-org/my-repo',

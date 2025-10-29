@@ -102,13 +102,14 @@ export default {
     repositories: [
       'my-org/backend-api',      // Specific repository
       'my-org/frontend-app',     // Another specific repository
-      'my-org/*',                 // All repositories in organization
+      'my-org/*',                // All repositories in organization
+      'username/*',              // All repositories for a user
     ],
   },
 };
 ```
 
-**Wildcard Support**: Use `org/*` to automatically scan all repositories in an organization. This is useful for large organizations where you want to discover all catalog files automatically.
+**Wildcard Support**: Use `owner/*` to automatically scan all repositories for an organization or user. This is useful for discovering all catalog files automatically across multiple repositories.
 
 ### Usage
 

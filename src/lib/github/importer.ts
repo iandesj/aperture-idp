@@ -21,12 +21,12 @@ async function expandWildcards(
   const errors: Array<{ repository: string; error: string }> = [];
 
   for (const repoString of repositories) {
-    // Check for org/* pattern
+    // Check for owner/* or org/* pattern
     if (repoString.endsWith('/*')) {
-      const org = repoString.slice(0, -2);
+      const ownerOrOrg = repoString.slice(0, -2);
       try {
-        const orgRepos = await client.listOrgRepositories(org);
-        expanded.push(...orgRepos);
+        const repos = await client.listRepositories(ownerOrOrg);
+        expanded.push(...repos);
       } catch (error) {
         errors.push({
           repository: repoString,
