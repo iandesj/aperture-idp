@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import { getAllComponents } from "@/lib/catalog";
 import { Component } from "../types";
 import { Search, X } from "lucide-react";
 
-export function CatalogPage() {
-  const allComponents = getAllComponents();
+interface CatalogPageProps {
+  components: Component[];
+}
+
+export function CatalogPage({ components: allComponents }: CatalogPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedLifecycles, setSelectedLifecycles] = useState<string[]>([]);

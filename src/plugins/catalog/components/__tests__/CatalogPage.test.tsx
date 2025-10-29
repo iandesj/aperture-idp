@@ -1,11 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CatalogPage } from '../CatalogPage';
-import * as catalogLib from '@/lib/catalog';
-
-jest.mock('@/lib/catalog');
-
-const mockCatalogLib = catalogLib as jest.Mocked<typeof catalogLib>;
 
 const mockComponents = [
   {
@@ -67,19 +62,14 @@ const mockComponents = [
 ];
 
 describe('CatalogPage', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockCatalogLib.getAllComponents.mockReturnValue(mockComponents);
-  });
-
   describe('Basic Rendering', () => {
     it('renders without crashing', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       expect(screen.getByText('Software Catalog')).toBeInTheDocument();
     });
 
     it('displays all components initially', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.getByText('api-service')).toBeInTheDocument();
       expect(screen.getByText('frontend-app')).toBeInTheDocument();
@@ -88,12 +78,12 @@ describe('CatalogPage', () => {
     });
 
     it('shows component count', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       expect(screen.getByText('4 components')).toBeInTheDocument();
     });
 
     it('displays component metadata', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.getByText('Backend API service')).toBeInTheDocument();
       expect(screen.getAllByText(/Owner: team-backend/).length).toBeGreaterThan(0);
@@ -101,7 +91,7 @@ describe('CatalogPage', () => {
     });
 
     it('displays component links', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const link = screen.getByRole('link', { name: 'Repository' });
       expect(link).toHaveAttribute('href', 'https://github.com/example/api');
@@ -112,7 +102,7 @@ describe('CatalogPage', () => {
   describe('Search Functionality', () => {
     it('filters components by name', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'api');
@@ -124,7 +114,7 @@ describe('CatalogPage', () => {
 
     it('filters components by description', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'react');
@@ -135,7 +125,7 @@ describe('CatalogPage', () => {
 
     it('filters components by tags', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'backend');
@@ -146,7 +136,7 @@ describe('CatalogPage', () => {
 
     it('search is case-insensitive', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'BACKEND');
@@ -156,7 +146,7 @@ describe('CatalogPage', () => {
 
     it('shows no results message when search has no matches', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'nonexistent');
@@ -167,7 +157,7 @@ describe('CatalogPage', () => {
 
   describe('Type Filtering', () => {
     it('filters by service type', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const serviceButton = screen.getByRole('button', { name: 'service' });
       fireEvent.click(serviceButton);
@@ -179,7 +169,7 @@ describe('CatalogPage', () => {
     });
 
     it('filters by library type', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const libraryButton = screen.getByRole('button', { name: 'library' });
       fireEvent.click(libraryButton);
@@ -189,7 +179,7 @@ describe('CatalogPage', () => {
     });
 
     it('supports multiple type selections', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const serviceButton = screen.getByRole('button', { name: 'service' });
       const libraryButton = screen.getByRole('button', { name: 'library' });
@@ -204,7 +194,7 @@ describe('CatalogPage', () => {
     });
 
     it('toggles type filter off when clicked again', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const serviceButton = screen.getByRole('button', { name: 'service' });
       
@@ -218,7 +208,7 @@ describe('CatalogPage', () => {
 
   describe('Lifecycle Filtering', () => {
     it('filters by production lifecycle', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const productionButton = screen.getByRole('button', { name: 'production' });
       fireEvent.click(productionButton);
@@ -230,7 +220,7 @@ describe('CatalogPage', () => {
     });
 
     it('filters by experimental lifecycle', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const experimentalButton = screen.getByRole('button', { name: 'experimental' });
       fireEvent.click(experimentalButton);
@@ -240,7 +230,7 @@ describe('CatalogPage', () => {
     });
 
     it('supports multiple lifecycle selections', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const productionButton = screen.getByRole('button', { name: 'production' });
       const deprecatedButton = screen.getByRole('button', { name: 'deprecated' });
@@ -258,7 +248,7 @@ describe('CatalogPage', () => {
   describe('Combined Filtering', () => {
     it('combines search and type filter', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'service');
@@ -270,7 +260,7 @@ describe('CatalogPage', () => {
     });
 
     it('combines type and lifecycle filters', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const serviceButton = screen.getByRole('button', { name: 'service' });
       const productionButton = screen.getByRole('button', { name: 'production' });
@@ -287,7 +277,7 @@ describe('CatalogPage', () => {
   describe('Clear Filters', () => {
     it('shows clear filters button when filters are active', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.queryByText(/clear filters/i)).not.toBeInTheDocument();
       
@@ -299,7 +289,7 @@ describe('CatalogPage', () => {
 
     it('clears all filters when clicked', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'api');
@@ -318,7 +308,7 @@ describe('CatalogPage', () => {
 
     it('updates result count correctly', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.getByText('4 components')).toBeInTheDocument();
       
@@ -331,8 +321,7 @@ describe('CatalogPage', () => {
 
   describe('Empty States', () => {
     it('shows empty catalog message when no components exist', () => {
-      mockCatalogLib.getAllComponents.mockReturnValue([]);
-      render(<CatalogPage />);
+      render(<CatalogPage components={[]} />);
       
       expect(screen.getByText(/no components in the catalog yet/i)).toBeInTheDocument();
       expect(screen.queryByPlaceholderText(/search by name/i)).toBeInTheDocument();
@@ -340,7 +329,7 @@ describe('CatalogPage', () => {
 
     it('shows no results message when filters match nothing', async () => {
       const user = userEvent.setup();
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       const searchInput = screen.getByPlaceholderText(/search by name/i);
       await user.type(searchInput, 'zzzzzzz');
@@ -352,14 +341,14 @@ describe('CatalogPage', () => {
 
   describe('UI Elements', () => {
     it('displays filter labels', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.getByText('Type')).toBeInTheDocument();
       expect(screen.getByText('Lifecycle')).toBeInTheDocument();
     });
 
     it('renders all available type filters', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.getByRole('button', { name: 'service' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'library' })).toBeInTheDocument();
@@ -367,7 +356,7 @@ describe('CatalogPage', () => {
     });
 
     it('renders all available lifecycle filters', () => {
-      render(<CatalogPage />);
+      render(<CatalogPage components={mockComponents} />);
       
       expect(screen.getByRole('button', { name: 'production' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'experimental' })).toBeInTheDocument();

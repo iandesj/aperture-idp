@@ -1,8 +1,8 @@
 import { AperturePlugin } from "@/lib/plugins";
-import { CatalogPage } from "./components/CatalogPage";
+import { CatalogPageWrapper } from "./components/CatalogPageWrapper";
 
 export const catalogPlugin: AperturePlugin = {
   id: "catalog",
   name: "Software Catalog",
-  component: CatalogPage,
+  component: CatalogPageWrapper,
 };
