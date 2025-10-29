@@ -40,3 +40,8 @@ export function getRecentComponents(limit: number = 6): Component[] {
   const components = getAllComponents();
   return components.slice(0, limit);
 }
+
+export function getComponentByName(name: string): Component | null {
+  const components = getAllComponents();
+  return components.find((c) => c.metadata.name === name) || null;
+}

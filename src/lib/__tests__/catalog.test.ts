@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { getAllComponents, getCatalogStats, getRecentComponents } from '../catalog';
+import { getAllComponents, getCatalogStats, getRecentComponents, getComponentByName } from '../catalog';
 import { Component } from '@/plugins/catalog/types';
 
 jest.mock('fs');
@@ -176,6 +176,42 @@ describe('catalog', () => {
       const result = getRecentComponents();
 
       expect(result).toHaveLength(6);
+    });
+  });
+
+  describe('getComponentByName', () => {
+    beforeEach(() => {
+      mockFs.readdirSync.mockReturnValue([
+        'component-1.yaml',
+        'component-2.yaml',
+        'component-3.yaml',
+      ] as any);
+      mockFs.readFileSync
+        .mockReturnValueOnce('yaml 1')
+        .mockReturnValueOnce('yaml 2')
+        .mockReturnValueOnce('yaml 3');
+      mockYaml.load
+        .mockReturnValueOnce(mockComponent1)
+        .mockReturnValueOnce(mockComponent2)
+        .mockReturnValueOnce(mockComponent3);
+    });
+
+    it('should return component when name matches', () => {
+      const result = getComponentByName('component-1');
+
+      expect(result).toEqual(mockComponent1);
+    });
+
+    it('should return null when component not found', () => {
+      const result = getComponentByName('nonexistent');
+
+      expect(result).toBeNull();
+    });
+
+    it('should be case-sensitive', () => {
+      const result = getComponentByName('Component-1');
+
+      expect(result).toBeNull();
     });
   });
 });
