@@ -170,5 +170,55 @@ export class GitHubClient {
       );
     }
   }
+
+  async listOrgRepositories(org: string): Promise<string[]> {
+    const repositories: string[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    try {
+      while (true) {
+        const url = `${this.baseUrl}/orgs/${org}/repos?per_page=${perPage}&page=${page}&type=all`;
+        const response = await this.fetch(url);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new GitHubClientError(
+              `Organization "${org}" not found or not accessible`,
+              404
+            );
+          }
+          throw new GitHubClientError(
+            `Failed to list repositories for org "${org}": ${response.status}`,
+            response.status
+          );
+        }
+
+        const repos = await response.json() as Array<{ full_name: string }>;
+        
+        if (repos.length === 0) {
+          break;
+        }
+
+        repositories.push(...repos.map(repo => repo.full_name));
+
+        // If we got fewer than perPage results, we're on the last page
+        if (repos.length < perPage) {
+          break;
+        }
+
+        page++;
+      }
+
+      return repositories;
+    } catch (error) {
+      if (error instanceof GitHubClientError) {
+        throw error;
+      }
+      throw new GitHubClientError(
+        `Failed to list repositories: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
 }
 

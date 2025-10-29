@@ -100,12 +100,15 @@ export default {
     enabled: process.env.GITHUB_ENABLED === 'true',
     token: process.env.GITHUB_TOKEN,
     repositories: [
-      'my-org/my-repo',
-      'another-org/another-repo',
+      'my-org/backend-api',      // Specific repository
+      'my-org/frontend-app',     // Another specific repository
+      'my-org/*',                 // All repositories in organization
     ],
   },
 };
 ```
+
+**Wildcard Support**: Use `org/*` to automatically scan all repositories in an organization. This is useful for large organizations where you want to discover all catalog files automatically.
 
 ### Usage
 

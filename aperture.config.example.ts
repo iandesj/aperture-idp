@@ -19,14 +19,18 @@ const config: ApertureConfig = {
     token: process.env.GITHUB_TOKEN,
     
     // List of repositories to scan for catalog-info.yaml files
-    // Format: "owner/repo" or "org/repo"
+    // Format: 
+    //   - "owner/repo" for a specific repository
+    //   - "org/*" to scan all repositories in an organization
     // Examples:
-    //   "my-org/backend-api"
-    //   "my-org/frontend-app"
-    //   "username/personal-project"
+    //   "my-org/backend-api"        - Single repository
+    //   "my-org/frontend-app"       - Single repository  
+    //   "my-org/*"                  - All repos in organization
+    //   "username/personal-project" - Personal repository
     repositories: [
       // Add your repositories here
       // 'my-org/my-repo',
+      // 'my-org/*',
     ],
   },
 };

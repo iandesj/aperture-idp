@@ -13,6 +13,35 @@ export interface ImportResult {
   total: number;
 }
 
+async function expandWildcards(
+  client: GitHubClient,
+  repositories: string[]
+): Promise<{ expanded: string[]; errors: Array<{ repository: string; error: string }> }> {
+  const expanded: string[] = [];
+  const errors: Array<{ repository: string; error: string }> = [];
+
+  for (const repoString of repositories) {
+    // Check for org/* pattern
+    if (repoString.endsWith('/*')) {
+      const org = repoString.slice(0, -2);
+      try {
+        const orgRepos = await client.listOrgRepositories(org);
+        expanded.push(...orgRepos);
+      } catch (error) {
+        errors.push({
+          repository: repoString,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    } else {
+      // Not a wildcard, add as-is
+      expanded.push(repoString);
+    }
+  }
+
+  return { expanded, errors };
+}
+
 export async function importFromGitHub(): Promise<ImportResult> {
   const result: ImportResult = {
     success: 0,
@@ -39,18 +68,18 @@ export async function importFromGitHub(): Promise<ImportResult> {
   }
 
   const client = new GitHubClient(config.github.token);
-  result.total = config.github.repositories.length;
+  
+  // Expand wildcards first
+  const { expanded: repositories, errors: expansionErrors } = await expandWildcards(
+    client,
+    config.github.repositories
+  );
+  
+  // Add any expansion errors
+  result.errors.push(...expansionErrors);
+  result.total = repositories.length;
 
-  for (const repoString of config.github.repositories) {
-    // Skip wildcard patterns for now (future enhancement)
-    if (repoString.includes('*')) {
-      result.skipped++;
-      result.errors.push({
-        repository: repoString,
-        error: 'Wildcard patterns not yet supported',
-      });
-      continue;
-    }
+  for (const repoString of repositories) {
 
     const [owner, repo] = repoString.split('/');
     if (!owner || !repo) {
