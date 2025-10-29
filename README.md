@@ -60,6 +60,62 @@ The catalog will automatically update when you add or modify YAML files.
 - `npm run build` - Build the application for production
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
+- `npm test` - Run all tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
+
+## Testing
+
+This project uses [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/react) for testing.
+
+### Running Tests
+
+```bash
+# Run all tests once
+npm test
+
+# Run tests in watch mode (useful during development)
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+### Test Coverage
+
+The project includes comprehensive tests for:
+
+- **Catalog Functions** (`src/lib/__tests__/catalog.test.ts`)
+  - Component data fetching and parsing
+  - Statistics calculations
+  - Component filtering and retrieval
+
+- **Component Tests** 
+  - Dashboard page (`src/app/__tests__/page.test.tsx`)
+  - Catalog page with search and filtering (`src/plugins/catalog/components/__tests__/CatalogPage.test.tsx`)
+  - Component detail pages (`src/app/catalog/[componentName]/__tests__/page.test.tsx`)
+
+### Writing Tests
+
+Tests are colocated with the code in `__tests__` directories. Example structure:
+
+```
+src/
+├── lib/
+│   ├── catalog.ts
+│   └── __tests__/
+│       └── catalog.test.ts
+├── app/
+│   ├── page.tsx
+│   └── __tests__/
+│       └── page.test.tsx
+```
+
+When adding new features:
+1. Create a `__tests__` directory next to your code
+2. Name test files with `.test.ts` or `.test.tsx` extension
+3. Mock external dependencies (filesystem, APIs, etc.)
+4. Test both happy paths and edge cases
 
 ## Project Structure
 
