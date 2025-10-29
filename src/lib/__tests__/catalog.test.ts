@@ -16,7 +16,7 @@ import { Component } from '@/plugins/catalog/types';
 
 jest.mock('fs');
 jest.mock('js-yaml');
-jest.mock('../github/store', () => ({
+jest.mock('../import/store', () => ({
   importStore: {
     getImportedComponents: jest.fn(() => []),
   },
