@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { Component } from "../types";
 import { Search, X } from "lucide-react";
 
@@ -180,9 +181,10 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredComponents.map((component) => (
-            <div
+            <Link
               key={component.metadata.name}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+              href={`/catalog/${component.metadata.name}`}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow cursor-pointer block"
             >
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 {component.metadata.name}
@@ -229,6 +231,7 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 block"
                     >
                       {link.title || link.url}
@@ -236,7 +239,7 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                   ))}
                 </div>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}
