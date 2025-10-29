@@ -68,10 +68,14 @@ class ImportStore {
   }
 
   getImportedComponents(): ImportedComponent[] {
+    // Always reload from disk to ensure fresh data
+    this.loadFromDisk();
     return Array.from(this.components.values());
   }
 
   getImportedComponent(repository: string, name: string): ImportedComponent | undefined {
+    // Always reload from disk to ensure fresh data
+    this.loadFromDisk();
     const key = `github:${repository}:${name}`;
     return this.components.get(key);
   }
@@ -95,6 +99,7 @@ class ImportStore {
   }
 
   getStats() {
+    // getImportedComponents() already reloads from disk
     const imported = this.getImportedComponents();
     const repositories = new Set(imported.map((ic) => ic.source.repository));
 
