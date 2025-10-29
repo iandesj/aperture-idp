@@ -1,7 +1,8 @@
-import { getComponentByName, getAllComponents } from "@/lib/catalog";
+import { getComponentByName, getAllComponents, getDependencyGraph } from "@/lib/catalog";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Network } from "lucide-react";
+import { DependencyGraph } from "@/components/DependencyGraph";
 
 export async function generateStaticParams() {
   const components = getAllComponents();
@@ -21,6 +22,12 @@ export default async function ComponentDetailPage({
   if (!component) {
     notFound();
   }
+
+  const dependencyData = getDependencyGraph(componentName, 1);
+  const hasDependencies = dependencyData.dependencies.length > 0 || 
+                         dependencyData.dependents.length > 0 ||
+                         dependencyData.indirectDependencies.length > 0 ||
+                         dependencyData.indirectDependents.length > 0;
 
   const lifecycleColors: Record<string, string> = {
     production: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -141,6 +148,50 @@ export default async function ComponentDetailPage({
           </div>
         </div>
       )}
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 mb-4">
+          <Network className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Dependencies
+          </h2>
+        </div>
+        {hasDependencies ? (
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex gap-6 mb-4">
+                {dependencyData.dependencies.length > 0 && (
+                  <span>
+                    <strong>{dependencyData.dependencies.length}</strong> direct{' '}
+                    {dependencyData.dependencies.length === 1 ? 'dependency' : 'dependencies'}
+                  </span>
+                )}
+                {dependencyData.dependents.length > 0 && (
+                  <span>
+                    <strong>{dependencyData.dependents.length}</strong> direct{' '}
+                    {dependencyData.dependents.length === 1 ? 'dependent' : 'dependents'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <DependencyGraph
+              component={component}
+              dependencies={dependencyData.dependencies}
+              dependents={dependencyData.dependents}
+              indirectDependencies={dependencyData.indirectDependencies}
+              indirectDependents={dependencyData.indirectDependents}
+            />
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <Network className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">No dependencies or dependents found</p>
+            <p className="text-xs mt-1">
+              This component operates independently
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

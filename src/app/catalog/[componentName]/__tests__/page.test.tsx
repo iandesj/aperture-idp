@@ -8,6 +8,9 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('@/lib/catalog');
+jest.mock('@/components/DependencyGraph', () => ({
+  DependencyGraph: () => <div data-testid="dependency-graph" />,
+}));
 
 const mockCatalogLib = catalogLib as jest.Mocked<typeof catalogLib>;
 
@@ -47,6 +50,13 @@ const mockMinimalComponent = {
 describe('ComponentDetailPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCatalogLib.getDependencyGraph.mockReturnValue({
+      component: mockComponent,
+      dependencies: [],
+      dependents: [],
+      indirectDependencies: [],
+      indirectDependents: [],
+    });
   });
 
   it('renders component details correctly', async () => {
