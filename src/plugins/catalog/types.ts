@@ -17,5 +17,6 @@ export interface Component {
     lifecycle: string;
     owner: string;
     system?: string;
+    dependsOn?: string[];
   };
 }
