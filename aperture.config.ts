@@ -11,6 +11,7 @@ const config: ApertureConfig = {
     enabled: process.env.GITHUB_ENABLED === 'true',
     token: process.env.GITHUB_TOKEN,
     repositories: [
+      'iandesj/aperture-idp-test-app',
       // Add repositories to import catalog files from
       // Format: "owner/repo" or "org/*" for future wildcard support
       // Example: "my-org/my-repo"
@@ -19,4 +20,3 @@ const config: ApertureConfig = {
 };
 
 export default config;
-

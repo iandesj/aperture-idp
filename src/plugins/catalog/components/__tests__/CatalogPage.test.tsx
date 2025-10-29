@@ -2,6 +2,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CatalogPage } from '../CatalogPage';
 
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    refresh: jest.fn(),
+  })),
+}));
+
 // Mock the catalog functions
 jest.mock('@/lib/catalog', () => ({
   getComponentSource: jest.fn(() => 'local'),

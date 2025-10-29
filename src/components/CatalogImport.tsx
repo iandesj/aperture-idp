@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { RefreshCw, Check, AlertCircle, Download } from 'lucide-react';
 
 interface ImportStats {
@@ -21,6 +22,7 @@ interface ImportResult {
 }
 
 export function CatalogImport() {
+  const router = useRouter();
   const [isImporting, setIsImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [stats, setStats] = useState<ImportStats | null>(null);
@@ -53,6 +55,12 @@ export function CatalogImport() {
       if (data.success) {
         setResult(data.result);
         setStats(data.stats);
+        
+        // Refresh the page to show newly imported components
+        // Use setTimeout to allow users to see the import results first
+        setTimeout(() => {
+          router.refresh();
+        }, 2000);
       } else {
         setError(data.error || 'Import failed');
       }
