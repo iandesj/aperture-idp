@@ -1,6 +1,6 @@
 import SystemsPage from "@/app/systems/page";
 
-export async function SystemsPageWrapper() {
+export function SystemsPageWrapper() {
   return <SystemsPage />;
 }
 

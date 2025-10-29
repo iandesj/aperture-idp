@@ -1,13 +1,13 @@
-import { AperturePlugin } from "@/lib/plugins";
 // In the future, we will dynamically load plugins
 // For now, we manually import them
+import { ReactElement } from "react";
 import { catalogPlugin } from "@/plugins/catalog";
 import { systemsPlugin } from "@/plugins/systems";
 
 export interface AperturePlugin {
   id: string;
   name: string;
-  component: () => JSX.Element;
+  component: () => ReactElement;
 }
 
 const plugins: AperturePlugin[] = [
