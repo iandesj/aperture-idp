@@ -17,4 +17,7 @@ spec:
   lifecycle: production
   owner: team-operations
   system: internal-tools
+  dependsOn:
+    - api-gateway
+    - ui-components
 

@@ -20,4 +20,7 @@ spec:
   lifecycle: production
   owner: team-commerce
   system: payment-infrastructure
+  dependsOn:
+    - api-gateway
+    - data-client
 

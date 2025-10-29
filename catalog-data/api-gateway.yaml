@@ -19,4 +19,6 @@ spec:
   lifecycle: production
   owner: team-platform
   system: core-infrastructure
+  dependsOn:
+    - auth-service
 
