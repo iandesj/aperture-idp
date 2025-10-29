@@ -122,11 +122,6 @@ export function getDependencyGraph(componentName: string, depth: number = 1): {
   const dependencies = getComponentDependencies(componentName);
   const dependents = getComponentDependents(componentName);
   
-  console.log(`getDependencyGraph for ${componentName}:`, {
-    dependencies: dependencies.map(d => d.metadata.name),
-    dependents: dependents.map(d => d.metadata.name),
-  });
-  
   let indirectDependencies: Component[] = [];
   let indirectDependents: Component[] = [];
 
