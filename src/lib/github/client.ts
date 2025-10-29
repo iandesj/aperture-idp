@@ -178,23 +178,41 @@ export class GitHubClient {
 
     try {
       // Try both org and user endpoints
-      // First try as organization
-      let isOrg = true;
+      // First try as organization (orgs can have private repos visible with proper token)
       let baseEndpoint = `/orgs/${ownerOrOrg}/repos`;
+      let queryParams = `per_page=${perPage}&type=all`;
       
       // Check if it's an org or user by trying org endpoint first
-      const testUrl = `${this.baseUrl}${baseEndpoint}?per_page=1`;
+      const testUrl = `${this.baseUrl}${baseEndpoint}?per_page=1&type=all`;
       const testResponse = await this.fetch(testUrl);
       
       if (testResponse.status === 404) {
-        // Not an org, try as user
-        isOrg = false;
-        baseEndpoint = `/users/${ownerOrOrg}/repos`;
+        // Not an org, check if we can get the authenticated user
+        const userResponse = await this.fetch(`${this.baseUrl}/user`);
+        
+        if (userResponse.ok) {
+          const user = await userResponse.json() as { login: string };
+          
+          if (user.login.toLowerCase() === ownerOrOrg.toLowerCase()) {
+            // This is the authenticated user - use /user/repos to get all repos including private
+            baseEndpoint = '/user/repos';
+            queryParams = `per_page=${perPage}&visibility=all&affiliation=owner`;
+          } else {
+            // Different user - use /users/{username}/repos
+            // Note: This will only return public repos + any private repos we have access to
+            baseEndpoint = `/users/${ownerOrOrg}/repos`;
+            queryParams = `per_page=${perPage}&type=all`;
+          }
+        } else {
+          // Can't determine authenticated user, fall back to public user endpoint
+          baseEndpoint = `/users/${ownerOrOrg}/repos`;
+          queryParams = `per_page=${perPage}&type=all`;
+        }
       }
 
       // Now paginate through all repositories
       while (true) {
-        const url = `${this.baseUrl}${baseEndpoint}?per_page=${perPage}&page=${page}&type=all`;
+        const url = `${this.baseUrl}${baseEndpoint}?${queryParams}&page=${page}`;
         const response = await this.fetch(url);
 
         if (!response.ok) {
