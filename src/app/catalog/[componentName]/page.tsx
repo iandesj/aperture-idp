@@ -42,155 +42,171 @@ export default async function ComponentDetailPage({
   };
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <Link
-        href="/plugins/catalog"
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Catalog
-      </Link>
+    <div className="w-full space-y-8 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Link
+          href="/plugins/catalog"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Catalog
+        </Link>
 
-      <div>
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {component.metadata.name}
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          {component.metadata.description || "No description provided"}
-        </p>
+        <div className="mt-6">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+            {component.metadata.name}
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl">
+            {component.metadata.description || "No description provided"}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Component Details
-          </h2>
-          <dl className="space-y-3">
-            <div>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Type</dt>
-              <dd className="mt-1">
-                <span
-                  className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
-                    typeColors[component.spec.type] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                  }`}
-                >
-                  {component.spec.type}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Lifecycle</dt>
-              <dd className="mt-1">
-                <span
-                  className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
-                    lifecycleColors[component.spec.lifecycle] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                  }`}
-                >
-                  {component.spec.lifecycle}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Owner</dt>
-              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                {component.spec.owner}
-              </dd>
-            </div>
-            {component.spec.system && (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
+              Component Details
+            </h2>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">System</dt>
-                <dd className="mt-1">
-                  <Link
-                    href={`/systems/${component.spec.system}`}
-                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Type</dt>
+                <dd>
+                  <span
+                    className={`inline-flex px-3 py-1.5 rounded text-sm font-medium ${
+                      typeColors[component.spec.type] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                    }`}
                   >
-                    {component.spec.system}
-                  </Link>
+                    {component.spec.type}
+                  </span>
                 </dd>
               </div>
-            )}
-          </dl>
-        </div>
-
-        {component.metadata.tags && component.metadata.tags.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tags</h2>
-            <div className="flex flex-wrap gap-2">
-              {component.metadata.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Lifecycle</dt>
+                <dd>
+                  <span
+                    className={`inline-flex px-3 py-1.5 rounded text-sm font-medium ${
+                      lifecycleColors[component.spec.lifecycle] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                    }`}
+                  >
+                    {component.spec.lifecycle}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Owner</dt>
+                <dd className="text-sm text-gray-900 dark:text-gray-100">
+                  {component.spec.owner}
+                </dd>
+              </div>
+              {component.spec.system && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">System</dt>
+                  <dd>
+                    <Link
+                      href={`/systems/${component.spec.system}`}
+                      className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
+                    >
+                      {component.spec.system}
+                    </Link>
+                  </dd>
+                </div>
+              )}
+            </dl>
           </div>
-        )}
+
+          {component.metadata.tags && component.metadata.tags.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tags</h2>
+              <div className="flex flex-wrap gap-2">
+                {component.metadata.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {component.metadata.links && component.metadata.links.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Links</h2>
-          <div className="space-y-2">
-            {component.metadata.links.map((link, idx) => (
-              <a
-                key={idx}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
-              >
-                <ExternalLink className="w-4 h-4" />
-                {link.title || link.url}
-              </a>
-            ))}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Links</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {component.metadata.links.map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm hover:underline transition-colors p-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                >
+                  <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{link.title || link.url}</span>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2 mb-4">
-          <Network className="w-5 h-5 text-gray-900 dark:text-gray-100" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Dependencies
-          </h2>
-        </div>
-        {hasDependencies ? (
-          <div className="space-y-4">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <div className="flex gap-6 mb-4">
-                {dependencyData.dependencies.length > 0 && (
-                  <span>
-                    <strong>{dependencyData.dependencies.length}</strong> direct{' '}
-                    {dependencyData.dependencies.length === 1 ? 'dependency' : 'dependencies'}
-                  </span>
-                )}
-                {dependencyData.dependents.length > 0 && (
-                  <span>
-                    <strong>{dependencyData.dependents.length}</strong> direct{' '}
-                    {dependencyData.dependents.length === 1 ? 'dependent' : 'dependents'}
-                  </span>
-                )}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Network className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Dependencies
+            </h2>
+          </div>
+          {hasDependencies ? (
+            <div className="space-y-6">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap gap-6">
+                  {dependencyData.dependencies.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {dependencyData.dependencies.length}
+                      </span>
+                      <span>
+                        direct {dependencyData.dependencies.length === 1 ? 'dependency' : 'dependencies'}
+                      </span>
+                    </div>
+                  )}
+                  {dependencyData.dependents.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {dependencyData.dependents.length}
+                      </span>
+                      <span>
+                        direct {dependencyData.dependents.length === 1 ? 'dependent' : 'dependents'}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
+              <DependencyGraph
+                component={component}
+                dependencies={dependencyData.dependencies}
+                dependents={dependencyData.dependents}
+                indirectDependencies={dependencyData.indirectDependencies}
+                indirectDependents={dependencyData.indirectDependents}
+              />
             </div>
-            <DependencyGraph
-              component={component}
-              dependencies={dependencyData.dependencies}
-              dependents={dependencyData.dependents}
-              indirectDependencies={dependencyData.indirectDependencies}
-              indirectDependents={dependencyData.indirectDependents}
-            />
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Network className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No dependencies or dependents found</p>
-            <p className="text-xs mt-1">
-              This component operates independently
-            </p>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <Network className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <p className="text-base font-medium">No dependencies or dependents found</p>
+              <p className="text-sm mt-2">
+                This component operates independently
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

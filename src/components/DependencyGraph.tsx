@@ -253,7 +253,7 @@ export function DependencyGraph({
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   return (
-    <div className="w-full h-[600px] bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="relative w-full h-[700px] bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -261,32 +261,37 @@ export function DependencyGraph({
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         fitView
-        minZoom={0.5}
-        maxZoom={1.5}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        minZoom={0.4}
+        maxZoom={2}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.75 }}
+        proOptions={{ hideAttribution: true }}
       >
-        <Background />
-        <Controls />
-        <MiniMap nodeColor={(node) => {
-          const data = node.data as Component & { isCenter?: boolean };
-          if (data.isCenter) return '#3b82f6';
-          const typeColor = typeColors[data.spec.type];
-          return typeColor?.border || '#9ca3af';
-        }} />
+        <Background gap={16} size={1} />
+        <Controls className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg" />
+        <MiniMap 
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
+          nodeColor={(node) => {
+            const data = node.data as Component & { isCenter?: boolean };
+            if (data.isCenter) return '#3b82f6';
+            const typeColor = typeColors[data.spec.type];
+            return typeColor?.border || '#9ca3af';
+          }} 
+          maskColor="rgb(0, 0, 0, 0.1)"
+        />
       </ReactFlow>
       
-      <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 text-xs space-y-1 border border-gray-200 dark:border-gray-700">
-        <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Legend</div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-blue-500"></div>
+      <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 text-xs space-y-2 border border-gray-200 dark:border-gray-700">
+        <div className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Legend</div>
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-0.5 bg-blue-500"></div>
           <span className="text-gray-700 dark:text-gray-300">Dependencies (left)</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-green-500"></div>
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-0.5 bg-green-500"></div>
           <span className="text-gray-700 dark:text-gray-300">Dependents (right)</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-gray-400" style={{ borderTop: '1px dashed' }}></div>
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-0.5 border-t border-dashed border-gray-400"></div>
           <span className="text-gray-700 dark:text-gray-300">Indirect</span>
         </div>
       </div>
