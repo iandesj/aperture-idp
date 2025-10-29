@@ -45,3 +45,39 @@ export function getComponentByName(name: string): Component | null {
   const components = getAllComponents();
   return components.find((c) => c.metadata.name === name) || null;
 }
+
+export function getAllSystems(): string[] {
+  const components = getAllComponents();
+  const systems = new Set<string>();
+  
+  components.forEach((component) => {
+    if (component.spec.system) {
+      systems.add(component.spec.system);
+    }
+  });
+  
+  return Array.from(systems).sort();
+}
+
+export function getSystemStats() {
+  const components = getAllComponents();
+  const stats: Record<string, { count: number; types: Record<string, number> }> = {};
+  
+  components.forEach((component) => {
+    const system = component.spec.system || 'uncategorized';
+    
+    if (!stats[system]) {
+      stats[system] = { count: 0, types: {} };
+    }
+    
+    stats[system].count++;
+    stats[system].types[component.spec.type] = (stats[system].types[component.spec.type] || 0) + 1;
+  });
+  
+  return stats;
+}
+
+export function getComponentsBySystem(systemName: string): Component[] {
+  const components = getAllComponents();
+  return components.filter((c) => c.spec.system === systemName);
+}

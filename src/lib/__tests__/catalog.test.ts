@@ -1,7 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { getAllComponents, getCatalogStats, getRecentComponents, getComponentByName } from '../catalog';
+import { 
+  getAllComponents, 
+  getCatalogStats, 
+  getRecentComponents, 
+  getComponentByName,
+  getAllSystems,
+  getSystemStats,
+  getComponentsBySystem
+} from '../catalog';
 import { Component } from '@/plugins/catalog/types';
 
 jest.mock('fs');
@@ -212,6 +220,167 @@ describe('catalog', () => {
       const result = getComponentByName('Component-1');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('getAllSystems', () => {
+    const mockComponentWithSystem = {
+      ...mockComponent1,
+      spec: { ...mockComponent1.spec, system: 'system-a' },
+    };
+
+    const mockComponentWithSystem2 = {
+      ...mockComponent2,
+      spec: { ...mockComponent2.spec, system: 'system-b' },
+    };
+
+    const mockComponentWithSystem3 = {
+      ...mockComponent3,
+      spec: { ...mockComponent3.spec, system: 'system-a' },
+    };
+
+    it('should return unique list of systems', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load
+        .mockReturnValueOnce(mockComponentWithSystem)
+        .mockReturnValueOnce(mockComponentWithSystem2)
+        .mockReturnValueOnce(mockComponentWithSystem3);
+
+      const result = getAllSystems();
+
+      expect(result).toEqual(['system-a', 'system-b']);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should return empty array when no components have systems', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockComponent1);
+
+      const result = getAllSystems();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return sorted list', () => {
+      const mockWithZ = { ...mockComponent1, spec: { ...mockComponent1.spec, system: 'z-system' } };
+      const mockWithA = { ...mockComponent2, spec: { ...mockComponent2.spec, system: 'a-system' } };
+
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockWithZ).mockReturnValueOnce(mockWithA);
+
+      const result = getAllSystems();
+
+      expect(result).toEqual(['a-system', 'z-system']);
+    });
+  });
+
+  describe('getSystemStats', () => {
+    it('should return stats for all systems', () => {
+      const mockWithSystem1 = {
+        ...mockComponent1,
+        spec: { ...mockComponent1.spec, system: 'system-a' },
+      };
+      const mockWithSystem2 = {
+        ...mockComponent2,
+        spec: { ...mockComponent2.spec, system: 'system-b' },
+      };
+      const mockWithSystem3 = {
+        ...mockComponent3,
+        spec: { ...mockComponent3.spec, system: 'system-a' },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load
+        .mockReturnValueOnce(mockWithSystem1)
+        .mockReturnValueOnce(mockWithSystem2)
+        .mockReturnValueOnce(mockWithSystem3);
+
+      const result = getSystemStats();
+
+      expect(result['system-a']).toEqual({
+        count: 2,
+        types: { service: 2 },
+      });
+      expect(result['system-b']).toEqual({
+        count: 1,
+        types: { library: 1 },
+      });
+    });
+
+    it('should categorize components without system as uncategorized', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockComponent1);
+
+      const result = getSystemStats();
+
+      expect(result['uncategorized']).toEqual({
+        count: 1,
+        types: { service: 1 },
+      });
+    });
+
+    it('should count different component types within a system', () => {
+      const service = { ...mockComponent1, spec: { ...mockComponent1.spec, system: 'sys', type: 'service' } };
+      const library = { ...mockComponent2, spec: { ...mockComponent2.spec, system: 'sys', type: 'library' } };
+      const website = { ...mockComponent3, spec: { ...mockComponent3.spec, system: 'sys', type: 'website' } };
+
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load
+        .mockReturnValueOnce(service)
+        .mockReturnValueOnce(library)
+        .mockReturnValueOnce(website);
+
+      const result = getSystemStats();
+
+      expect(result['sys']).toEqual({
+        count: 3,
+        types: { service: 1, library: 1, website: 1 },
+      });
+    });
+  });
+
+  describe('getComponentsBySystem', () => {
+    it('should return all components in a system', () => {
+      const mockWithSystem1 = {
+        ...mockComponent1,
+        spec: { ...mockComponent1.spec, system: 'system-a' },
+      };
+      const mockWithSystem2 = {
+        ...mockComponent2,
+        spec: { ...mockComponent2.spec, system: 'system-b' },
+      };
+      const mockWithSystem3 = {
+        ...mockComponent3,
+        spec: { ...mockComponent3.spec, system: 'system-a' },
+      };
+
+      mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load
+        .mockReturnValueOnce(mockWithSystem1)
+        .mockReturnValueOnce(mockWithSystem2)
+        .mockReturnValueOnce(mockWithSystem3);
+
+      const result = getComponentsBySystem('system-a');
+
+      expect(result).toHaveLength(2);
+      expect(result).toEqual([mockWithSystem1, mockWithSystem3]);
+    });
+
+    it('should return empty array for non-existent system', () => {
+      mockFs.readdirSync.mockReturnValue(['c1.yaml'] as any);
+      mockFs.readFileSync.mockReturnValue('yaml');
+      mockYaml.load.mockReturnValueOnce(mockComponent1);
+
+      const result = getComponentsBySystem('nonexistent');
+
+      expect(result).toEqual([]);
     });
   });
 });
