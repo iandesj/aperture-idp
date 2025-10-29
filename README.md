@@ -6,6 +6,7 @@ An extensible Internal Developer Portal built with Next.js, focused on software 
 
 - **Software Catalog**: Manage and discover software components using Backstage-compatible YAML definitions
 - **GitHub Integration**: Automatically import catalog files from GitHub repositories
+- **GitLab Integration**: Automatically import catalog files from GitLab projects
 - **Search & Filtering**: Find components by name, type, lifecycle, or tags
 - **System Architecture**: Visualize components organized by systems
 - **Dependency Visualization**: Interactive graph showing component relationships
@@ -114,7 +115,7 @@ export default {
 ### Usage
 
 1. Navigate to the Software Catalog page
-2. Click the "Import from GitHub" button
+2. Click the "Import Catalog Data" button
 3. Wait for the import to complete
 4. Imported components will be merged with local components
 5. Components from GitHub will show a "GitHub" badge
@@ -142,6 +143,88 @@ export default {
 **No components imported:**
 - Verify repositories have `catalog-info.yaml` in the root directory
 - Check that the YAML file is valid and follows Backstage schema
+
+## GitLab Integration
+
+Aperture can automatically import catalog definitions from GitLab projects.
+
+### Setup
+
+1. **Generate a GitLab Personal Access Token**
+   - Go to GitLab Settings → Access Tokens: https://gitlab.com/-/user_settings/personal_access_tokens
+   - Create a token with `read_api` scope
+   - Copy the token
+
+2. **Configure Environment Variables**
+
+Edit your `.env.local` file:
+
+```bash
+GITLAB_ENABLED=true
+GITLAB_TOKEN=your_gitlab_personal_access_token_here
+```
+
+3. **Add Projects to Import**
+
+Edit `aperture.config.ts` and add projects to the `gitlab.projects` array:
+
+```typescript
+export default {
+  gitlab: {
+    enabled: process.env.GITLAB_ENABLED === 'true',
+    token: process.env.GITLAB_TOKEN,
+    projects: [
+      'my-group/backend-api',              // Specific project
+      'my-group/sub-group/frontend-app',   // Nested group project
+      'my-group/*',                        // All projects in group (includes subgroups)
+      'username/*',                        // All projects for a user
+    ],
+  },
+};
+```
+
+**Wildcard Support**: Use `group/*` to automatically scan all projects in a GitLab group (including subgroups). Use `username/*` to scan all projects for a user.
+
+**Nested Groups**: GitLab supports nested groups (e.g., `parent-group/sub-group/project`). The importer will discover all projects when using wildcards with `include_subgroups=true`.
+
+### Usage
+
+1. Navigate to the Software Catalog page
+2. Click the "Import Catalog Data" button
+3. Both GitHub and GitLab imports will run (if enabled)
+4. Imported components will be merged with local components
+5. Components from GitLab will show a "GitLab" badge
+
+### How It Works
+
+- Scans configured projects for `catalog-info.yaml` files in the root directory
+- Supports both GitLab.com (default)
+- Imports valid Backstage-compatible component definitions
+- Handles nested groups automatically
+- Stores imported data separately from local files and GitHub imports
+- Cached data persists in `.aperture/imported.json`
+
+### Troubleshooting
+
+**Import button is disabled or errors occur:**
+- Check that `GITLAB_TOKEN` is set in `.env.local`
+- Verify the token has `read_api` scope
+- Ensure projects are in `group/project` format
+
+**Rate limiting:**
+- GitLab.com API has rate limits (2,000 requests/minute for authenticated users)
+- The import will stop if rate limit is exceeded
+- Wait for the rate limit to reset (shown in error message)
+
+**No components imported:**
+- Verify projects have `catalog-info.yaml` in the root directory
+- Check that the YAML file is valid and follows Backstage schema
+- For private projects, ensure your token has access
+
+**Wildcard not finding all projects:**
+- Verify the group/username exists and is spelled correctly
+- For groups, wildcards include subgroups automatically
+- For private projects under a user, ensure you're using the authenticated user's username
 
 ## Available Scripts
 
@@ -224,3 +307,5 @@ aperture-idp/
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [js-yaml](https://github.com/nodeca/js-yaml) - YAML parsing
+- [ReactFlow](https://reactflow.dev/) - Dependency graph visualization
+- [Lucide React](https://lucide.dev/) - Icon library
