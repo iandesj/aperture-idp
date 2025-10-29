@@ -147,12 +147,21 @@ describe('ImportStore', () => {
     });
 
     it('should handle corrupted data gracefully', () => {
+      // Suppress expected console.warn
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       (fs.readFileSync as jest.Mock).mockReturnValue('invalid json');
 
       const result = importStore.getImportedComponents();
 
       expect(result).toEqual([]);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to load imported components from disk:',
+        expect.any(SyntaxError)
+      );
+
+      consoleWarnSpy.mockRestore();
     });
 
     it('should reload from disk on each call', () => {
