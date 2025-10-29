@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aperture IDP
+
+An extensible Internal Developer Portal built with Next.js, focused on software cataloging and component discovery.
+
+## Features
+
+- **Software Catalog**: Manage and discover software components using Backstage-compatible YAML definitions
+- **Plugin System**: Extensible architecture for adding new features
+- **Dashboard**: Visual overview of your software catalog with statistics and component cards
+- **Dark Mode**: Automatic dark mode support
+
+## Prerequisites
+
+- Node.js 20.x or higher
+- npm, yarn, pnpm, or bun
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Add Components to the Catalog
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Add new component definitions in the `catalog-data/` directory using Backstage-compatible YAML format:
 
-## Learn More
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: my-component
+  description: Description of your component
+  tags:
+    - typescript
+    - backend
+  links:
+    - url: https://github.com/example/repo
+      title: Repository
+spec:
+  type: service
+  lifecycle: production
+  owner: team-name
+```
 
-To learn more about Next.js, take a look at the following resources:
+The catalog will automatically update when you add or modify YAML files.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Available Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `npm run dev` - Start development server at http://localhost:3000
+- `npm run build` - Build the application for production
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+aperture-idp/
+├── catalog-data/       # Component YAML definitions
+├── src/
+│   ├── app/           # Next.js app router pages
+│   ├── components/    # Reusable UI components
+│   ├── lib/           # Utility functions and data access
+│   └── plugins/       # Plugin implementations
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Built With
+
+- [Next.js 16](https://nextjs.org) - React framework
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [js-yaml](https://github.com/nodeca/js-yaml) - YAML parsing
