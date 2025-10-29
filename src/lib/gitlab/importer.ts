@@ -41,7 +41,7 @@ async function expandWildcards(
                 // Different user, use public endpoint
                 projectsList = await client.listUserProjects(groupOrUser);
               }
-            } catch (userError) {
+            } catch {
               throw groupError; // Throw original group error if user lookup also fails
             }
           } else {

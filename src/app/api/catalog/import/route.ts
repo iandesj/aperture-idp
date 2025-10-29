@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { importFromGitHub } from '@/lib/github/importer';
+import { importFromGitHub, type ImportResult } from '@/lib/github/importer';
 import { importFromGitLab } from '@/lib/gitlab/importer';
 import { importStore } from '@/lib/import/store';
 import config from '../../../../aperture.config';
@@ -7,8 +7,8 @@ import config from '../../../../aperture.config';
 export async function POST() {
   try {
     const results = {
-      github: null as any,
-      gitlab: null as any,
+      github: null as ImportResult | null,
+      gitlab: null as ImportResult | null,
       combined: {
         success: 0,
         failed: 0,
