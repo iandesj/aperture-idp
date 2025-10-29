@@ -11,6 +11,7 @@ import ReactFlow, {
   useEdgesState,
   MarkerType,
   Position,
+  Handle,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Component } from '@/plugins/catalog/types';
@@ -41,46 +42,50 @@ function ComponentNode({ data }: { data: Component & { isCenter?: boolean } }) {
   const lifecycleColor = lifecycleColors[data.spec.lifecycle] || '#6b7280';
 
   return (
-    <Link
-      href={`/catalog/${data.metadata.name}`}
-      className="block"
-      style={{ pointerEvents: 'auto' }}
-    >
-      <div
-        style={{
-          backgroundColor: typeColor.bg,
-          borderColor: typeColor.border,
-          borderWidth: data.isCenter ? '3px' : '2px',
-        }}
-        className="rounded-lg p-3 shadow-md hover:shadow-lg transition-shadow min-w-[200px]"
+    <>
+      <Handle type="target" position={Position.Left} />
+      <Link
+        href={`/catalog/${data.metadata.name}`}
+        className="block"
+        style={{ pointerEvents: 'auto' }}
       >
-        <div className="text-sm font-semibold text-gray-900 mb-1 truncate">
-          {data.metadata.name}
-        </div>
-        <div className="flex gap-1 mb-1">
-          <span
-            style={{
-              backgroundColor: typeColor.bg,
-              borderColor: typeColor.border,
-            }}
-            className="text-xs px-2 py-0.5 rounded border font-medium text-gray-700"
-          >
-            {data.spec.type}
-          </span>
-          <span
-            style={{ backgroundColor: lifecycleColor }}
-            className="text-xs px-2 py-0.5 rounded text-white font-medium"
-          >
-            {data.spec.lifecycle}
-          </span>
-        </div>
-        {data.spec.system && (
-          <div className="text-xs text-gray-600 truncate">
-            {data.spec.system}
+        <div
+          style={{
+            backgroundColor: typeColor.bg,
+            borderColor: typeColor.border,
+            borderWidth: data.isCenter ? '3px' : '2px',
+          }}
+          className="rounded-lg p-3 shadow-md hover:shadow-lg transition-shadow min-w-[200px]"
+        >
+          <div className="text-sm font-semibold text-gray-900 mb-1 truncate">
+            {data.metadata.name}
           </div>
-        )}
-      </div>
-    </Link>
+          <div className="flex gap-1 mb-1">
+            <span
+              style={{
+                backgroundColor: typeColor.bg,
+                borderColor: typeColor.border,
+              }}
+              className="text-xs px-2 py-0.5 rounded border font-medium text-gray-700"
+            >
+              {data.spec.type}
+            </span>
+            <span
+              style={{ backgroundColor: lifecycleColor }}
+              className="text-xs px-2 py-0.5 rounded text-white font-medium"
+            >
+              {data.spec.lifecycle}
+            </span>
+          </div>
+          {data.spec.system && (
+            <div className="text-xs text-gray-600 truncate">
+              {data.spec.system}
+            </div>
+          )}
+        </div>
+      </Link>
+      <Handle type="source" position={Position.Right} />
+    </>
   );
 }
 
