@@ -1,6 +1,36 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CatalogPage } from '../CatalogPage';
+
+// Mock the catalog functions
+jest.mock('@/lib/catalog', () => ({
+  getComponentSource: jest.fn(() => 'local'),
+}));
+
+// Mock fetch globally
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve({ success: true, stats: { total: 0, repositories: 0, lastSync: null } }),
+  })
+) as jest.Mock;
+
+// Suppress console errors for async state updates in tests
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: unknown[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('not wrapped in act')
+    ) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
 
 const mockComponents = [
   {

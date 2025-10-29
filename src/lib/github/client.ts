@@ -1,0 +1,174 @@
+import { Component } from '@/plugins/catalog/types';
+import yaml from 'js-yaml';
+
+export interface GitHubFile {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  url: string;
+  download_url: string;
+  type: 'file' | 'dir';
+}
+
+export interface GitHubRateLimit {
+  limit: number;
+  remaining: number;
+  reset: number;
+}
+
+export class GitHubClientError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public rateLimit?: GitHubRateLimit
+  ) {
+    super(message);
+    this.name = 'GitHubClientError';
+  }
+}
+
+export class GitHubClient {
+  private baseUrl = 'https://api.github.com';
+  private token?: string;
+
+  constructor(token?: string) {
+    this.token = token;
+  }
+
+  private async fetch(url: string): Promise<Response> {
+    const headers: HeadersInit = {
+      Accept: 'application/vnd.github.v3+json',
+    };
+
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(url, { headers });
+
+    // Check rate limit
+    const remaining = response.headers.get('x-ratelimit-remaining');
+    const limit = response.headers.get('x-ratelimit-limit');
+    const reset = response.headers.get('x-ratelimit-reset');
+
+    if (remaining && parseInt(remaining) < 10) {
+      console.warn(
+        `GitHub API rate limit low: ${remaining}/${limit}. Resets at ${new Date(
+          parseInt(reset || '0') * 1000
+        ).toISOString()}`
+      );
+    }
+
+    return response;
+  }
+
+  async checkCatalogFileExists(
+    owner: string,
+    repo: string
+  ): Promise<boolean> {
+    const url = `${this.baseUrl}/repos/${owner}/${repo}/contents/catalog-info.yaml`;
+
+    try {
+      const response = await this.fetch(url);
+      return response.status === 200;
+    } catch {
+      return false;
+    }
+  }
+
+  async fetchCatalogFile(
+    owner: string,
+    repo: string
+  ): Promise<Component | null> {
+    const url = `${this.baseUrl}/repos/${owner}/${repo}/contents/catalog-info.yaml`;
+
+    try {
+      const response = await this.fetch(url);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        if (response.status === 403) {
+          const rateLimit: GitHubRateLimit = {
+            limit: parseInt(response.headers.get('x-ratelimit-limit') || '0'),
+            remaining: parseInt(
+              response.headers.get('x-ratelimit-remaining') || '0'
+            ),
+            reset: parseInt(response.headers.get('x-ratelimit-reset') || '0'),
+          };
+          throw new GitHubClientError(
+            'GitHub API rate limit exceeded',
+            403,
+            rateLimit
+          );
+        }
+        if (response.status === 401) {
+          throw new GitHubClientError(
+            'GitHub authentication failed. Check your token.',
+            401
+          );
+        }
+        throw new GitHubClientError(
+          `GitHub API error: ${response.status} ${response.statusText}`,
+          response.status
+        );
+      }
+
+      const data = (await response.json()) as GitHubFile;
+
+      if (data.type !== 'file' || !data.download_url) {
+        throw new GitHubClientError('Invalid catalog file structure');
+      }
+
+      // Fetch the actual file content
+      const contentResponse = await fetch(data.download_url);
+      if (!contentResponse.ok) {
+        throw new GitHubClientError(
+          `Failed to download catalog file: ${contentResponse.status}`
+        );
+      }
+
+      const yamlContent = await contentResponse.text();
+      const component = yaml.load(yamlContent) as Component;
+
+      // Validate basic structure
+      if (!component.metadata?.name || !component.spec?.type) {
+        throw new GitHubClientError(
+          'Invalid catalog file: missing required fields (metadata.name or spec.type)'
+        );
+      }
+
+      return component;
+    } catch (error) {
+      if (error instanceof GitHubClientError) {
+        throw error;
+      }
+      throw new GitHubClientError(
+        `Failed to fetch catalog file: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  async getRateLimit(): Promise<GitHubRateLimit> {
+    const url = `${this.baseUrl}/rate_limit`;
+
+    try {
+      const response = await this.fetch(url);
+      if (!response.ok) {
+        throw new GitHubClientError(
+          `Failed to get rate limit: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return data.rate as GitHubRateLimit;
+    } catch (error) {
+      throw new GitHubClientError(
+        `Failed to get rate limit: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+}
+

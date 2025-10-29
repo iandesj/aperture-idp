@@ -2,10 +2,13 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import { Component } from "@/plugins/catalog/types";
+import { importStore } from "./github/store";
 
 const catalogDataDir = path.join(process.cwd(), "catalog-data");
 
-export function getAllComponents(): Component[] {
+export type ComponentSource = 'local' | 'github';
+
+export function getLocalComponents(): Component[] {
   const fileNames = fs.readdirSync(catalogDataDir);
   const allComponentsData = fileNames.map((fileName) => {
     const fullPath = path.join(catalogDataDir, fileName);
@@ -14,6 +17,54 @@ export function getAllComponents(): Component[] {
     return component;
   });
   return allComponentsData;
+}
+
+export function getAllComponents(source?: ComponentSource): Component[] {
+  const localComponents = getLocalComponents();
+  
+  if (source === 'local') {
+    return localComponents;
+  }
+  
+  const importedComponents = importStore.getImportedComponents().map((ic) => ic.component);
+  
+  if (source === 'github') {
+    return importedComponents;
+  }
+  
+  // Merge local and imported, with local taking precedence for duplicates
+  const componentMap = new Map<string, Component>();
+  
+  // Add imported components first
+  importedComponents.forEach((component) => {
+    componentMap.set(component.metadata.name, component);
+  });
+  
+  // Override with local components (local takes precedence)
+  localComponents.forEach((component) => {
+    componentMap.set(component.metadata.name, component);
+  });
+  
+  return Array.from(componentMap.values());
+}
+
+export function getComponentSource(componentName: string): ComponentSource | null {
+  const localComponents = getLocalComponents();
+  const isLocal = localComponents.some((c) => c.metadata.name === componentName);
+  
+  if (isLocal) {
+    return 'local';
+  }
+  
+  const importedComponent = importStore.getImportedComponents().find(
+    (ic) => ic.component.metadata.name === componentName
+  );
+  
+  if (importedComponent) {
+    return 'github';
+  }
+  
+  return null;
 }
 
 export function getCatalogStats() {
