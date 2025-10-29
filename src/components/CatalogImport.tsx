@@ -7,6 +7,10 @@ import { RefreshCw, Check, AlertCircle, Download } from 'lucide-react';
 interface ImportStats {
   total: number;
   repositories: number;
+  bySource: {
+    github?: number;
+    gitlab?: number;
+  };
   lastSync: string | null;
 }
 
@@ -16,15 +20,22 @@ interface ImportResult {
   skipped: number;
   total: number;
   errors: Array<{
-    repository: string;
+    repository?: string;
+    project?: string;
     error: string;
   }>;
+}
+
+interface ImportResults {
+  github: ImportResult | null;
+  gitlab: ImportResult | null;
+  combined: ImportResult;
 }
 
 export function CatalogImport() {
   const router = useRouter();
   const [isImporting, setIsImporting] = useState(false);
-  const [result, setResult] = useState<ImportResult | null>(null);
+  const [results, setResults] = useState<ImportResults | null>(null);
   const [stats, setStats] = useState<ImportStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +54,7 @@ export function CatalogImport() {
   const handleImport = async () => {
     setIsImporting(true);
     setError(null);
-    setResult(null);
+    setResults(null);
 
     try {
       const response = await fetch('/api/catalog/import', {
@@ -53,7 +64,7 @@ export function CatalogImport() {
       const data = await response.json();
 
       if (data.success) {
-        setResult(data.result);
+        setResults(data.results);
         setStats(data.stats);
         
         // Refresh the page to show newly imported components
@@ -92,7 +103,7 @@ export function CatalogImport() {
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Import from GitHub
+              Import Catalog Data
             </>
           )}
         </button>
@@ -105,7 +116,7 @@ export function CatalogImport() {
       </div>
 
       {stats && stats.total > 0 && (
-        <div className="flex gap-4 text-sm">
+        <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
             <span>
@@ -113,6 +124,20 @@ export function CatalogImport() {
               {stats.repositories} {stats.repositories !== 1 ? 'repositories' : 'repository'}
             </span>
           </div>
+          {stats.bySource && (
+            <div className="flex gap-3 text-xs">
+              {stats.bySource.github && (
+                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">
+                  GitHub: {stats.bySource.github}
+                </span>
+              )}
+              {stats.bySource.gitlab && (
+                <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400 rounded">
+                  GitLab: {stats.bySource.gitlab}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -128,49 +153,70 @@ export function CatalogImport() {
         </div>
       )}
 
-      {result && (
+      {results && (
         <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
           <div className="flex items-center justify-between">
             <span className="font-medium text-gray-900 dark:text-gray-100">
               Import Results
             </span>
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {result.total} {result.total !== 1 ? 'repositories' : 'repository'} processed
+              {results.combined.total} {results.combined.total !== 1 ? 'repositories' : 'repository'} processed
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {result.success}
+                {results.combined.success}
               </div>
               <div className="text-gray-600 dark:text-gray-400">Success</div>
             </div>
             <div className="text-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
               <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                {result.skipped}
+                {results.combined.skipped}
               </div>
               <div className="text-gray-600 dark:text-gray-400">Skipped</div>
             </div>
             <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
               <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {result.failed}
+                {results.combined.failed}
               </div>
               <div className="text-gray-600 dark:text-gray-400">Failed</div>
             </div>
           </div>
 
-          {result.errors.length > 0 && (
+          {(results.github || results.gitlab) && (
+            <div className="flex gap-4 text-xs">
+              {results.github && (
+                <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-700 rounded">
+                  <div className="font-medium mb-1">GitHub</div>
+                  <div className="text-gray-600 dark:text-gray-400">
+                    ✓ {results.github.success} · ⊘ {results.github.skipped} · ✗ {results.github.failed}
+                  </div>
+                </div>
+              )}
+              {results.gitlab && (
+                <div className="flex-1 p-2 bg-orange-100 dark:bg-orange-900/20 rounded">
+                  <div className="font-medium text-orange-800 dark:text-orange-400 mb-1">GitLab</div>
+                  <div className="text-gray-600 dark:text-gray-400">
+                    ✓ {results.gitlab.success} · ⊘ {results.gitlab.skipped} · ✗ {results.gitlab.failed}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {results.combined.errors.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Errors:</p>
               <div className="space-y-1 max-h-40 overflow-y-auto">
-                {result.errors.map((err, idx) => (
+                {results.combined.errors.map((err, idx) => (
                   <div
                     key={idx}
                     className="text-xs p-2 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700"
                   >
                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {err.repository}:
+                      {err.repository || err.project}:
                     </span>{' '}
                     <span className="text-gray-600 dark:text-gray-400">{err.error}</span>
                   </div>

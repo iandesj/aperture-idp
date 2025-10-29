@@ -3,11 +3,11 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Component } from "../types";
-import { Search, X, Github, HardDrive } from "lucide-react";
+import { Search, X, Github, HardDrive, GitlabIcon as Gitlab } from "lucide-react";
 import { CatalogImport } from "@/components/CatalogImport";
 
 interface ComponentWithSource extends Component {
-  _source?: 'local' | 'github';
+  _source?: 'local' | 'github' | 'gitlab';
 }
 
 interface CatalogPageProps {
@@ -205,6 +205,12 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                     <div className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
                       <Github className="w-3 h-3" />
                       <span>GitHub</span>
+                    </div>
+                  )}
+                  {source === 'gitlab' && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-xs text-orange-700 dark:text-orange-400">
+                      <Gitlab className="w-3 h-3" />
+                      <span>GitLab</span>
                     </div>
                   )}
                   {source === 'local' && (
