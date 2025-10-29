@@ -220,25 +220,9 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                   ))}
                 </div>
               )}
-              <div className="text-xs text-gray-500 dark:text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-500 mt-3">
                 Owner: {component.spec.owner}
               </div>
-              {component.metadata.links && component.metadata.links.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  {component.metadata.links.map((link, idx) => (
-                    <a
-                      key={idx}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 block"
-                    >
-                      {link.title || link.url}
-                    </a>
-                  ))}
-                </div>
-              )}
             </Link>
           ))}
         </div>

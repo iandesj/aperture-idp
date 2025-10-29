@@ -90,12 +90,12 @@ describe('CatalogPage', () => {
       expect(screen.getAllByText('typescript').length).toBeGreaterThan(0);
     });
 
-    it('displays component links', () => {
+    it('renders clickable component cards', () => {
       render(<CatalogPage components={mockComponents} />);
       
-      const link = screen.getByRole('link', { name: 'Repository' });
-      expect(link).toHaveAttribute('href', 'https://github.com/example/api');
-      expect(link).toHaveAttribute('target', '_blank');
+      const cards = screen.getAllByRole('link');
+      expect(cards.length).toBeGreaterThan(0);
+      expect(cards[0]).toHaveAttribute('href', '/catalog/api-service');
     });
   });
 
