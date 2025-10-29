@@ -71,7 +71,13 @@ Aperture can automatically import catalog definitions from GitHub repositories.
 
 2. **Configure Environment Variables**
 
-Create a `.env.local` file in the project root:
+Copy `.env.example` to `.env.local` and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local`:
 
 ```bash
 GITHUB_ENABLED=true
@@ -80,7 +86,13 @@ GITHUB_TOKEN=your_github_personal_access_token_here
 
 3. **Add Repositories to Import**
 
-Edit `aperture.config.ts` and add repositories to the `repositories` array:
+Copy `aperture.config.example.ts` to `aperture.config.ts`:
+
+```bash
+cp aperture.config.example.ts aperture.config.ts
+```
+
+Then edit `aperture.config.ts` and add repositories to the `repositories` array:
 
 ```typescript
 export default {
