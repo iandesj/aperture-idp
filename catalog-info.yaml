@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: aperture-idp
+  description: An extensible Internal Developer Portal built with Next.js, focused on software cataloging and component discovery
+  tags:
+    - nextjs
+    - typescript
+    - idp
+    - developer-portal
+    - backstage
+    - catalog
+  links:
+    - url: https://github.com/codenbrew/aperture-idp
+      title: Repository
+      icon: github
+    - url: http://localhost:3000
+      title: Local Development
+      icon: dashboard
+spec:
+  type: website
+  lifecycle: experimental
+  owner: team-platform
+  system: developer-tools
+
