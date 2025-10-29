@@ -99,6 +99,9 @@ export function DependencyGraph({
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
+    // Track node IDs to avoid duplicates
+    const nodeIds = new Set<string>();
+    
     // Center node (current component)
     nodes.push({
       id: component.metadata.name,
@@ -108,18 +111,22 @@ export function DependencyGraph({
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
     });
+    nodeIds.add(component.metadata.name);
 
     // Direct dependencies (left side)
     dependencies.forEach((dep, index) => {
-      const y = 150 + index * 120;
-      nodes.push({
-        id: dep.metadata.name,
-        type: 'component',
-        position: { x: 50, y },
-        data: dep,
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      });
+      if (!nodeIds.has(dep.metadata.name)) {
+        const y = 150 + index * 120;
+        nodes.push({
+          id: dep.metadata.name,
+          type: 'component',
+          position: { x: 50, y },
+          data: dep,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+        });
+        nodeIds.add(dep.metadata.name);
+      }
 
       edges.push({
         id: `${dep.metadata.name}-${component.metadata.name}`,
@@ -137,21 +144,24 @@ export function DependencyGraph({
 
     // Indirect dependencies (far left)
     indirectDependencies.forEach((dep, index) => {
-      const y = 100 + index * 100;
-      nodes.push({
-        id: dep.metadata.name,
-        type: 'component',
-        position: { x: -300, y },
-        data: dep,
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      });
+      if (!nodeIds.has(dep.metadata.name)) {
+        const y = 100 + index * 100;
+        nodes.push({
+          id: dep.metadata.name,
+          type: 'component',
+          position: { x: -300, y },
+          data: dep,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+        });
+        nodeIds.add(dep.metadata.name);
+      }
 
       // Find which direct dependency this connects to
       const directDep = dependencies.find((d) =>
         d.spec.dependsOn?.includes(dep.metadata.name)
       );
-      if (directDep) {
+      if (directDep && nodeIds.has(directDep.metadata.name)) {
         edges.push({
           id: `${dep.metadata.name}-${directDep.metadata.name}`,
           source: dep.metadata.name,
@@ -169,15 +179,18 @@ export function DependencyGraph({
 
     // Direct dependents (right side)
     dependents.forEach((dep, index) => {
-      const y = 150 + index * 120;
-      nodes.push({
-        id: dep.metadata.name,
-        type: 'component',
-        position: { x: 750, y },
-        data: dep,
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      });
+      if (!nodeIds.has(dep.metadata.name)) {
+        const y = 150 + index * 120;
+        nodes.push({
+          id: dep.metadata.name,
+          type: 'component',
+          position: { x: 750, y },
+          data: dep,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+        });
+        nodeIds.add(dep.metadata.name);
+      }
 
       edges.push({
         id: `${component.metadata.name}-${dep.metadata.name}`,
@@ -195,21 +208,24 @@ export function DependencyGraph({
 
     // Indirect dependents (far right)
     indirectDependents.forEach((dep, index) => {
-      const y = 100 + index * 100;
-      nodes.push({
-        id: dep.metadata.name,
-        type: 'component',
-        position: { x: 1100, y },
-        data: dep,
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      });
+      if (!nodeIds.has(dep.metadata.name)) {
+        const y = 100 + index * 100;
+        nodes.push({
+          id: dep.metadata.name,
+          type: 'component',
+          position: { x: 1100, y },
+          data: dep,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+        });
+        nodeIds.add(dep.metadata.name);
+      }
 
       // Find which direct dependent this connects from
       const directDep = dependents.find((d) =>
         dep.spec.dependsOn?.includes(d.metadata.name)
       );
-      if (directDep) {
+      if (directDep && nodeIds.has(directDep.metadata.name)) {
         edges.push({
           id: `${directDep.metadata.name}-${dep.metadata.name}`,
           source: directDep.metadata.name,
