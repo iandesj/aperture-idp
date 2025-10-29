@@ -2,10 +2,12 @@ import { Component } from '@/plugins/catalog/types';
 import fs from 'fs';
 import path from 'path';
 
+export type SourceType = 'github' | 'gitlab';
+
 export interface ImportedComponent {
   component: Component;
   source: {
-    type: 'github';
+    type: SourceType;
     repository: string;
     url: string;
   };
@@ -48,16 +50,17 @@ class ImportStore {
   }
 
   addImportedComponent(
+    sourceType: SourceType,
     repository: string,
     component: Component,
     url: string
   ): void {
-    const key = `github:${repository}:${component.metadata.name}`;
+    const key = `${sourceType}:${repository}:${component.metadata.name}`;
     
     this.components.set(key, {
       component,
       source: {
-        type: 'github',
+        type: sourceType,
         repository,
         url,
       },
@@ -73,10 +76,10 @@ class ImportStore {
     return Array.from(this.components.values());
   }
 
-  getImportedComponent(repository: string, name: string): ImportedComponent | undefined {
+  getImportedComponent(sourceType: SourceType, repository: string, name: string): ImportedComponent | undefined {
     // Always reload from disk to ensure fresh data
     this.loadFromDisk();
-    const key = `github:${repository}:${name}`;
+    const key = `${sourceType}:${repository}:${name}`;
     return this.components.get(key);
   }
 
@@ -85,11 +88,11 @@ class ImportStore {
     this.saveToDisk();
   }
 
-  clearRepository(repository: string): void {
+  clearRepository(sourceType: SourceType, repository: string): void {
     const keysToDelete: string[] = [];
     
     for (const [key] of this.components) {
-      if (key.startsWith(`github:${repository}:`)) {
+      if (key.startsWith(`${sourceType}:${repository}:`)) {
         keysToDelete.push(key);
       }
     }
@@ -102,10 +105,15 @@ class ImportStore {
     // getImportedComponents() already reloads from disk
     const imported = this.getImportedComponents();
     const repositories = new Set(imported.map((ic) => ic.source.repository));
+    const bySource = imported.reduce((acc, ic) => {
+      acc[ic.source.type] = (acc[ic.source.type] || 0) + 1;
+      return acc;
+    }, {} as Record<SourceType, number>);
 
     return {
       total: imported.length,
       repositories: repositories.size,
+      bySource,
       lastSync: imported.length > 0
         ? new Date(
             Math.max(...imported.map((ic) => new Date(ic.lastSynced).getTime()))

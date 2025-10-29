@@ -1,6 +1,6 @@
 import config from '../../../aperture.config';
 import { GitHubClient, GitHubClientError } from './client';
-import { importStore } from './store';
+import { importStore } from '../import/store';
 
 export interface ImportResult {
   success: number;
@@ -108,7 +108,7 @@ export async function importFromGitHub(): Promise<ImportResult> {
 
       // Add to store
       const url = `https://github.com/${owner}/${repo}/blob/main/catalog-info.yaml`;
-      importStore.addImportedComponent(repoString, component, url);
+      importStore.addImportedComponent('github', repoString, component, url);
 
       result.success++;
     } catch (error) {

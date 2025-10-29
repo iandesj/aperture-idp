@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import { Component } from "@/plugins/catalog/types";
-import { importStore } from "./github/store";
+import { importStore } from "./import/store";
 
 const catalogDataDir = path.join(process.cwd(), "catalog-data");
 
-export type ComponentSource = 'local' | 'github';
+export type ComponentSource = 'local' | 'github' | 'gitlab';
 
 export function getLocalComponents(): Component[] {
   const fileNames = fs.readdirSync(catalogDataDir);
@@ -26,18 +26,26 @@ export function getAllComponents(source?: ComponentSource): Component[] {
     return localComponents;
   }
   
-  const importedComponents = importStore.getImportedComponents().map((ic) => ic.component);
+  const allImportedComponents = importStore.getImportedComponents();
   
   if (source === 'github') {
-    return importedComponents;
+    return allImportedComponents
+      .filter((ic) => ic.source.type === 'github')
+      .map((ic) => ic.component);
+  }
+  
+  if (source === 'gitlab') {
+    return allImportedComponents
+      .filter((ic) => ic.source.type === 'gitlab')
+      .map((ic) => ic.component);
   }
   
   // Merge local and imported, with local taking precedence for duplicates
   const componentMap = new Map<string, Component>();
   
   // Add imported components first
-  importedComponents.forEach((component) => {
-    componentMap.set(component.metadata.name, component);
+  allImportedComponents.forEach((ic) => {
+    componentMap.set(ic.component.metadata.name, ic.component);
   });
   
   // Override with local components (local takes precedence)
@@ -61,7 +69,7 @@ export function getComponentSource(componentName: string): ComponentSource | nul
   );
   
   if (importedComponent) {
-    return 'github';
+    return importedComponent.source.type;
   }
   
   return null;
