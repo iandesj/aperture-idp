@@ -1,4 +1,4 @@
-import config from '../../../aperture.config';
+import config from '../aperture.config';
 import { GitHubClient, GitHubClientError } from './client';
 import { importStore } from '../import/store';
 

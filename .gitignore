@@ -43,4 +43,4 @@ next-env.d.ts
 
 # aperture
 /.aperture/
-aperture.config.ts
+src/lib/aperture.config.ts

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { importFromGitHub, type ImportResult } from '@/lib/github/importer';
 import { importFromGitLab } from '@/lib/gitlab/importer';
 import { importStore } from '@/lib/import/store';
-import config from '../../../../aperture.config';
+import config from '@/lib/aperture.config';
 
 export async function POST() {
   try {

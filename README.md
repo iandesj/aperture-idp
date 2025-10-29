@@ -87,13 +87,13 @@ GITHUB_TOKEN=your_github_personal_access_token_here
 
 3. **Add Repositories to Import**
 
-Copy `aperture.config.example.ts` to `aperture.config.ts`:
+Copy `aperture.config.example.ts` to `src/lib/aperture.config.ts`:
 
 ```bash
-cp aperture.config.example.ts aperture.config.ts
+cp aperture.config.example.ts src/lib/aperture.config.ts
 ```
 
-Then edit `aperture.config.ts` and add repositories to the `repositories` array:
+Then edit `src/lib/aperture.config.ts` and add repositories to the `repositories` array:
 
 ```typescript
 export default {
@@ -166,7 +166,7 @@ GITLAB_TOKEN=your_gitlab_personal_access_token_here
 
 3. **Add Projects to Import**
 
-Edit `aperture.config.ts` and add projects to the `gitlab.projects` array:
+Edit `src/lib/aperture.config.ts` and add projects to the `gitlab.projects` array:
 
 ```typescript
 export default {
