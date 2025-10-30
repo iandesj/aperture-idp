@@ -1,5 +1,6 @@
 import { Component } from '@/plugins/catalog/types';
 import yaml from 'js-yaml';
+import { GitActivityMetrics } from '@/lib/git-activity/types';
 
 export interface GitLabProject {
   id: number;
@@ -222,6 +223,73 @@ export class GitLabClient {
       return this.extractRateLimit(response) || null;
     } catch {
       return null;
+    }
+  }
+
+  private getCountFromHeaders(response: Response, currentPageSize: number): number {
+    const totalHeader = response.headers.get('X-Total');
+    if (totalHeader) {
+      return parseInt(totalHeader, 10);
+    }
+
+    const totalPagesHeader = response.headers.get('X-Total-Pages');
+    const perPageHeader = response.headers.get('X-Per-Page');
+    if (totalPagesHeader && perPageHeader) {
+      const totalPages = parseInt(totalPagesHeader, 10);
+      const perPage = parseInt(perPageHeader, 10);
+      return totalPages * perPage;
+    }
+
+    return currentPageSize;
+  }
+
+  async getRepositoryActivity(projectPath: string): Promise<GitActivityMetrics> {
+    try {
+      let lastCommitDate: string | null = null;
+      let openIssuesCount = 0;
+      let openMergeRequestsCount = 0;
+
+      const encodedPath = encodeURIComponent(projectPath);
+
+      const projectResponse = await this.fetch(`/projects/${encodedPath}`);
+      if (projectResponse.ok) {
+        const project = await projectResponse.json() as GitLabProject;
+        const commitsUrl = `/projects/${encodedPath}/repository/commits?per_page=1`;
+        const commitsResponse = await this.fetch(commitsUrl);
+        if (commitsResponse.ok) {
+          const commits = await commitsResponse.json() as Array<{ committed_date: string }>;
+          if (commits.length > 0) {
+            lastCommitDate = commits[0].committed_date;
+          }
+        }
+
+        const issuesUrl = `/projects/${encodedPath}/issues?state=opened&per_page=100`;
+        const issuesResponse = await this.fetch(issuesUrl);
+        if (issuesResponse.ok) {
+          const issues = await issuesResponse.json() as Array<unknown>;
+          openIssuesCount = this.getCountFromHeaders(issuesResponse, issues.length);
+        }
+
+        const mergeRequestsUrl = `/projects/${encodedPath}/merge_requests?state=opened&per_page=1`;
+        const mergeRequestsResponse = await this.fetch(mergeRequestsUrl);
+        if (mergeRequestsResponse.ok) {
+          openMergeRequestsCount = this.getCountFromHeaders(mergeRequestsResponse, 0);
+        }
+      }
+
+      return {
+        lastCommitDate,
+        openIssuesCount,
+        openPullRequestsCount: openMergeRequestsCount,
+        source: 'gitlab',
+      };
+    } catch (error) {
+      if (error instanceof GitLabClientError) {
+        throw error;
+      }
+      throw new GitLabClientError(
+        `Failed to fetch repository activity: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 }
