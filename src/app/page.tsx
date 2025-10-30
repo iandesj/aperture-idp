@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getCatalogStats, getRecentComponents, getScorecardStats } from "@/lib/catalog";
-import { ScoreBadge } from "@/components/ScoreBadge";
 import { Award, TrendingUp, AlertCircle } from "lucide-react";
 
 export default function Home() {

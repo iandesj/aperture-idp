@@ -1,6 +1,5 @@
 import { importStore } from '../store';
 import fs from 'fs';
-import path from 'path';
 import { Component } from '@/plugins/catalog/types';
 
 jest.mock('fs');
