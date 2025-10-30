@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink, Network, CheckCircle2, XCircle, Award } from "
 import { DependencyGraph } from "@/components/DependencyGraph";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore, getImprovementSuggestions } from "@/lib/scoring";
+import { HideButton } from "./HideButton";
 
 export async function generateStaticParams() {
   const components = getAllComponents();
@@ -48,13 +49,16 @@ export default async function ComponentDetailPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/plugins/catalog"
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Catalog
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/plugins/catalog"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Catalog
+        </Link>
+        <HideButton componentName={componentName} />
+      </div>
 
       <div>
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
