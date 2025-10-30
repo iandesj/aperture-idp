@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  turbopack: {
+    // Ensure the correct workspace root is used when multiple lockfiles exist
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

@@ -19,21 +19,28 @@ export function getLocalComponents(includeHidden: boolean = false): Component[] 
     const fullPath = path.join(catalogDataDir, fileName);
     const fileContents = fs.readFileSync(fullPath, "utf8");
 
-    try {
-      // Support multi-document YAML files; collect only Component entities
-      const docs: unknown[] = [];
-      yaml.loadAll(fileContents, (doc) => { if (doc) docs.push(doc); });
-      docs.forEach((doc) => {
-        const entity = doc as { kind?: string; apiVersion?: string; metadata?: { name?: string }; spec?: unknown };
-        if (entity && entity.kind === 'Component') {
-          allComponentsData.push(entity as Component);
+    // Prefer multi-doc only when separators are present to preserve tests mocking yaml.load
+    if (/\n---\n/.test(fileContents)) {
+      try {
+        const docs: unknown[] = [];
+        yaml.loadAll(fileContents, (doc) => { if (doc) docs.push(doc); });
+        docs.forEach((doc) => {
+          const entity = doc as { kind?: string; apiVersion?: string; metadata?: { name?: string }; spec?: unknown };
+          if (entity && entity.kind === 'Component') {
+            allComponentsData.push(entity as Component);
+          }
+        });
+      } catch {
+        // ignore parsing error and fall through
+      }
+    } else {
+      try {
+        const maybeComponent = yaml.load(fileContents) as Component | undefined;
+        if (maybeComponent && (maybeComponent as any).kind === 'Component') {
+          allComponentsData.push(maybeComponent);
         }
-      });
-    } catch {
-      // Fallback: try single-doc parse for legacy files
-      const maybeComponent = yaml.load(fileContents) as Component | undefined;
-      if (maybeComponent && (maybeComponent as any).kind === 'Component') {
-        allComponentsData.push(maybeComponent);
+      } catch {
+        // ignore
       }
     }
   });

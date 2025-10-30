@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
-import { importFromGitHub, type ImportResult } from '@/lib/github/importer';
+import { importFromGitHub } from '@/lib/github/importer';
 import { importFromGitLab } from '@/lib/gitlab/importer';
 import { importStore } from '@/lib/import/store';
 import config from '@/lib/aperture.config';
 
+type ImportResultLike = {
+  success: number;
+  failed: number;
+  skipped: number;
+  total: number;
+  errors: Array<{ repository?: string; project?: string; error: string }>;
+};
+
 export async function POST() {
   try {
     const results = {
-      github: null as ImportResult | null,
-      gitlab: null as ImportResult | null,
+      github: null as ImportResultLike | null,
+      gitlab: null as ImportResultLike | null,
       combined: {
         success: 0,
         failed: 0,
@@ -22,7 +30,7 @@ export async function POST() {
     if (config.github.enabled) {
       try {
         const githubResult = await importFromGitHub();
-        results.github = githubResult;
+        results.github = githubResult as unknown as ImportResultLike;
         results.combined.success += githubResult.success;
         results.combined.failed += githubResult.failed;
         results.combined.skipped += githubResult.skipped;
@@ -40,7 +48,7 @@ export async function POST() {
     if (config.gitlab.enabled) {
       try {
         const gitlabResult = await importFromGitLab();
-        results.gitlab = gitlabResult;
+        results.gitlab = gitlabResult as unknown as ImportResultLike;
         results.combined.success += gitlabResult.success;
         results.combined.failed += gitlabResult.failed;
         results.combined.skipped += gitlabResult.skipped;
