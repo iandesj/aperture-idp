@@ -1,7 +1,7 @@
-import { TeamsPage } from "@/plugins/teams/components/TeamsPage";
+import { TeamsPageWrapper } from "@/plugins/teams/components/TeamsPageWrapper";
 
 export default function Page() {
-  return <TeamsPage />;
+  return <TeamsPageWrapper />;
 }
 
 
