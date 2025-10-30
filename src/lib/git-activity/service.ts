@@ -6,63 +6,20 @@ import { GitLabClient } from '@/lib/gitlab/client';
 import { importStore } from '@/lib/import/store';
 import config from '@/lib/aperture.config';
 
-function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
-  const githubMatch = url.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git|\/|$)/);
-  if (githubMatch) {
-    return { owner: githubMatch[1], repo: githubMatch[2] };
-  }
-  return null;
-}
-
-function parseGitLabUrl(url: string): string | null {
-  const gitlabMatch = url.match(/gitlab\.com[/:]([^/]+(?:\/[^/]+)*?)(?:\.git|\/|$)/);
-  if (gitlabMatch) {
-    return gitlabMatch[1];
-  }
-  return null;
-}
-
-function findRepositoryLink(component: Component): { source: 'github' | 'gitlab'; identifier: string } | null {
-  const links = component.metadata.links || [];
-  
-  for (const link of links) {
-    const url = link.url;
-    if (!url) continue;
-
-    const github = parseGitHubUrl(url);
-    if (github) {
-      return { source: 'github', identifier: `${github.owner}/${github.repo}` };
-    }
-
-    const gitlab = parseGitLabUrl(url);
-    if (gitlab) {
-      return { source: 'gitlab', identifier: gitlab };
-    }
-  }
-
-  return null;
-}
-
 export async function getActivityMetrics(component: Component): Promise<GitActivityMetrics | null> {
   const componentName = component.metadata.name;
-  let sourceType: 'github' | 'gitlab' | null = null;
-  let repository: string | null = null;
 
   const importedComponents = importStore.getImportedComponents();
   const importedComponent = importedComponents.find(
     (ic) => ic.component.metadata.name === componentName
   );
 
-  if (importedComponent) {
-    sourceType = importedComponent.source.type;
-    repository = importedComponent.source.repository;
-  } else {
-    const repoLink = findRepositoryLink(component);
-    if (repoLink) {
-      sourceType = repoLink.source;
-      repository = repoLink.identifier;
-    }
+  if (!importedComponent) {
+    return null;
   }
+
+  const sourceType = importedComponent.source.type;
+  const repository = importedComponent.source.repository;
 
   if (!sourceType || !repository) {
     return null;
