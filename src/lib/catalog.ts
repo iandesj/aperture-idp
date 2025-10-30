@@ -13,11 +13,29 @@ export type ComponentSource = 'local' | 'github' | 'gitlab';
 
 export function getLocalComponents(includeHidden: boolean = false): Component[] {
   const fileNames = fs.readdirSync(catalogDataDir);
-  const allComponentsData = fileNames.map((fileName) => {
+  const allComponentsData: Component[] = [];
+
+  fileNames.forEach((fileName) => {
     const fullPath = path.join(catalogDataDir, fileName);
     const fileContents = fs.readFileSync(fullPath, "utf8");
-    const component = yaml.load(fileContents) as Component;
-    return component;
+
+    try {
+      // Support multi-document YAML files; collect only Component entities
+      const docs: unknown[] = [];
+      yaml.loadAll(fileContents, (doc) => { if (doc) docs.push(doc); });
+      docs.forEach((doc) => {
+        const entity = doc as { kind?: string; apiVersion?: string; metadata?: { name?: string }; spec?: unknown };
+        if (entity && entity.kind === 'Component') {
+          allComponentsData.push(entity as Component);
+        }
+      });
+    } catch {
+      // Fallback: try single-doc parse for legacy files
+      const maybeComponent = yaml.load(fileContents) as Component | undefined;
+      if (maybeComponent && (maybeComponent as any).kind === 'Component') {
+        allComponentsData.push(maybeComponent);
+      }
+    }
   });
   
   if (includeHidden) {
