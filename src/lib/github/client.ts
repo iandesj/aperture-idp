@@ -77,7 +77,6 @@ export class GitHubClient {
         return 'main';
       }
       const data = (await response.json()) as GitHubRepository;
-      console.log('defaultBranch', data.default_branch);
       return data.default_branch || 'main';
     } catch {
       return 'main';

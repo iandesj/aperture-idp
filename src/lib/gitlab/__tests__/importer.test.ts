@@ -104,6 +104,10 @@ describe('GitLab Importer', () => {
         .mockResolvedValueOnce(mockComponent1)
         .mockResolvedValueOnce(mockComponent2);
 
+      mockClient.getDefaultBranch = jest
+        .fn()
+        .mockResolvedValue('main');
+
       const result = await importFromGitLab();
 
       expect(result.success).toBe(2);
@@ -156,6 +160,8 @@ describe('GitLab Importer', () => {
         spec: { type: 'service', lifecycle: 'production', owner: 'team-b' },
       });
 
+      mockClient.getDefaultBranch = jest.fn().mockResolvedValue('main');
+
       const result = await importFromGitLab();
 
       expect(result.success).toBe(1);
@@ -207,6 +213,8 @@ describe('GitLab Importer', () => {
         metadata: { name: 'service-1' },
         spec: { type: 'service', lifecycle: 'production', owner: 'team-a' },
       });
+
+      mockClient.getDefaultBranch = jest.fn().mockResolvedValue('main');
 
       const result = await importFromGitLab();
 

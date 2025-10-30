@@ -74,7 +74,6 @@ export class GitLabClient {
     const encodedPath = encodeURIComponent(projectPath);
     const response = await this.fetch(`/projects/${encodedPath}`);
     const data = (await response.json()) as GitLabProject;
-    console.log('defaultBranch', data.default_branch);
     return data.default_branch || 'main';
   }
 
