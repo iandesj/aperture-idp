@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-commerce
+  description: Commerce team responsible for payments and checkout
+  tags:
+    - commerce
+    - payments
+spec:
+  type: team
+  profile:
+    displayName: Commerce Team
+    email: commerce@example.com
+  parent: group:default/engineering
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-marketing
+  description: Marketing engineering team responsible for the marketing site and tooling
+  tags:
+    - marketing
+spec:
+  type: team
+  profile:
+    displayName: Marketing Engineering
+    email: marketing-eng@example.com
+  parent: group:default/engineering
+
+

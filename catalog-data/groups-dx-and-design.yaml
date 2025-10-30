@@ -1,0 +1,32 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-developer-experience
+  description: Developer Experience team responsible for docs, tooling, and productivity
+  tags:
+    - dx
+    - docs
+spec:
+  type: team
+  profile:
+    displayName: Developer Experience
+    email: dx@example.com
+  parent: group:default/engineering
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-design-systems
+  description: Design Systems team maintaining UI component libraries and design tokens
+  tags:
+    - design
+    - ui
+spec:
+  type: team
+  profile:
+    displayName: Design Systems
+    email: design-systems@example.com
+  parent: group:default/engineering
+
+

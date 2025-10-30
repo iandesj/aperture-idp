@@ -1,0 +1,44 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: engineering
+  description: All engineering teams
+  tags:
+    - org
+spec:
+  type: organization
+  profile:
+    displayName: Engineering
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-platform
+  description: Platform team responsible for core infrastructure and platform services
+  tags:
+    - platform
+    - infrastructure
+spec:
+  type: team
+  profile:
+    displayName: Platform Team
+    email: platform@example.com
+  parent: group:default/engineering
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-security
+  description: Security team responsible for auth, identity and application security
+  tags:
+    - security
+spec:
+  type: team
+  profile:
+    displayName: Security Team
+    email: security@example.com
+  parent: group:default/engineering
+
+

@@ -1,0 +1,29 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-data
+  description: Data platform team responsible for data ingestion and analytics
+  tags:
+    - data
+spec:
+  type: team
+  profile:
+    displayName: Data Platform
+    email: data@example.com
+  parent: group:default/engineering
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: examples
+  description: Example ownership group for sample components
+  tags:
+    - examples
+spec:
+  type: team
+  profile:
+    displayName: Examples
+  parent: group:default/engineering
+
+
