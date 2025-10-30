@@ -6,6 +6,7 @@ import { DependencyGraph } from "@/components/DependencyGraph";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore, getImprovementSuggestions } from "@/lib/scoring";
 import { HideButton } from "./HideButton";
+import { normalizeGroupRef, getGroupByRef } from "@/lib/groups";
 
 export async function generateStaticParams() {
   const components = getAllComponents();
@@ -102,7 +103,28 @@ export default async function ComponentDetailPage({
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Owner</dt>
               <dd className="text-sm text-gray-900 dark:text-gray-100">
-                {component.spec.owner}
+                {(() => {
+                  const owner = component.spec.owner;
+                  const isUserOwner = owner?.toLowerCase().startsWith('user:');
+                  if (!owner || isUserOwner) {
+                    return owner || "";
+                  }
+                  const normalized = normalizeGroupRef(owner);
+                  const group = getGroupByRef(normalized);
+                  if (!group) {
+                    return owner;
+                  }
+                  const nsAndName = normalized.split(":")[1] || ""; // default/name
+                  const groupName = nsAndName.split("/")[1] || group.metadata.name;
+                  return (
+                    <Link
+                      href={`/teams/${groupName}`}
+                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
+                    >
+                      {group.metadata.name}
+                    </Link>
+                  );
+                })()}
               </dd>
             </div>
             {component.spec.system && (
