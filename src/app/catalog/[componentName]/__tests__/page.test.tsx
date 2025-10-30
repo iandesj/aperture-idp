@@ -82,7 +82,7 @@ describe('ComponentDetailPage', () => {
     expect(screen.getByText('Type')).toBeInTheDocument();
     expect(screen.getByText('service')).toBeInTheDocument();
     
-    expect(screen.getByText('Lifecycle')).toBeInTheDocument();
+    expect(screen.getAllByText('Lifecycle').length).toBeGreaterThan(0);
     expect(screen.getByText('production')).toBeInTheDocument();
     
     expect(screen.getByText('Owner')).toBeInTheDocument();

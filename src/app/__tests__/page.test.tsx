@@ -20,6 +20,64 @@ describe('Home Dashboard', () => {
       },
     });
 
+    mockCatalogLib.getScorecardStats.mockReturnValue({
+      averageScore: 75,
+      tierDistribution: {
+        gold: 2,
+        silver: 2,
+        bronze: 1,
+        'needs-improvement': 0,
+      },
+      topPerformers: [
+        {
+          component: {
+            apiVersion: 'backstage.io/v1alpha1',
+            kind: 'Component',
+            metadata: { name: 'top-component' },
+            spec: { type: 'service', lifecycle: 'production', owner: 'team-a' },
+          },
+          score: {
+            total: 95,
+            tier: 'gold' as const,
+            breakdown: { metadata: 40, architecture: 30, lifecycle: 25 },
+            details: {
+              hasDescription: true,
+              hasThreePlusTags: true,
+              hasDocumentationLink: true,
+              hasOwner: true,
+              isPartOfSystem: true,
+              hasDependencies: true,
+              lifecycle: 'production',
+            },
+          },
+        },
+      ],
+      needsAttention: [
+        {
+          component: {
+            apiVersion: 'backstage.io/v1alpha1',
+            kind: 'Component',
+            metadata: { name: 'needs-work' },
+            spec: { type: 'service', lifecycle: 'deprecated', owner: 'team-b' },
+          },
+          score: {
+            total: 30,
+            tier: 'needs-improvement' as const,
+            breakdown: { metadata: 10, architecture: 20, lifecycle: 0 },
+            details: {
+              hasDescription: false,
+              hasThreePlusTags: false,
+              hasDocumentationLink: false,
+              hasOwner: true,
+              isPartOfSystem: false,
+              hasDependencies: false,
+              lifecycle: 'deprecated',
+            },
+          },
+        },
+      ],
+    });
+
     mockCatalogLib.getRecentComponents.mockReturnValue([
       {
         apiVersion: 'backstage.io/v1alpha1',
