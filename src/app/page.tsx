@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { getCatalogStats, getRecentComponents } from "@/lib/catalog";
+import { getCatalogStats, getRecentComponents, getScorecardStats } from "@/lib/catalog";
+import { ScoreBadge } from "@/components/ScoreBadge";
+import { Award, TrendingUp, AlertCircle } from "lucide-react";
 
 export default function Home() {
   const stats = getCatalogStats();
   const recentComponents = getRecentComponents(6);
+  const scorecardStats = getScorecardStats();
 
   const lifecycleColors: Record<string, string> = {
     production: "bg-green-100 text-green-800",
@@ -74,6 +77,112 @@ export default function Home() {
                     {count}
                   </span>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+          Quality Scorecard
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Average Score
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+              {scorecardStats.averageScore}
+              <span className="text-lg text-gray-500 dark:text-gray-400 font-normal">/100</span>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              Tier Distribution
+            </div>
+            <div className="space-y-2">
+              {scorecardStats.tierDistribution.gold > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-yellow-700 dark:text-yellow-400">Gold</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">
+                    {scorecardStats.tierDistribution.gold}
+                  </span>
+                </div>
+              )}
+              {scorecardStats.tierDistribution.silver > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Silver</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">
+                    {scorecardStats.tierDistribution.silver}
+                  </span>
+                </div>
+              )}
+              {scorecardStats.tierDistribution.bronze > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-orange-700 dark:text-orange-400">Bronze</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">
+                    {scorecardStats.tierDistribution.bronze}
+                  </span>
+                </div>
+              )}
+              {scorecardStats.tierDistribution['needs-improvement'] > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-red-700 dark:text-red-400">Needs Work</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">
+                    {scorecardStats.tierDistribution['needs-improvement']}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Top Performers
+              </div>
+            </div>
+            <div className="space-y-2">
+              {scorecardStats.topPerformers.map((cws) => (
+                <Link
+                  key={cws.component.metadata.name}
+                  href={`/catalog/${cws.component.metadata.name}`}
+                  className="flex items-center justify-between text-sm hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  <span className="truncate">{cws.component.metadata.name}</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 ml-2">
+                    {cws.score.total}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Needs Attention
+              </div>
+            </div>
+            <div className="space-y-2">
+              {scorecardStats.needsAttention.map((cws) => (
+                <Link
+                  key={cws.component.metadata.name}
+                  href={`/catalog/${cws.component.metadata.name}`}
+                  className="flex items-center justify-between text-sm hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  <span className="truncate">{cws.component.metadata.name}</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 ml-2">
+                    {cws.score.total}
+                  </span>
+                </Link>
               ))}
             </div>
           </div>
