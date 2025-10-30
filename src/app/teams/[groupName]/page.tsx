@@ -6,11 +6,11 @@ import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore } from "@/lib/scoring";
 
 interface Params {
-  params: { groupName: string };
+  params: Promise<{ groupName: string }>;
 }
 
-export default function TeamDetailPage({ params }: Params) {
-  const name = params.groupName;
+export default async function TeamDetailPage({ params }: Params) {
+  const { groupName: name } = await params;
   const ref = normalizeGroupRef(`group:${name}`);
   const group = getGroupByRef(ref);
   if (!group) return notFound();
