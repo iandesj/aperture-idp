@@ -1,8 +1,10 @@
 import { getComponentByName, getAllComponents, getDependencyGraph } from "@/lib/catalog";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Network } from "lucide-react";
+import { ArrowLeft, ExternalLink, Network, CheckCircle2, XCircle, Award } from "lucide-react";
 import { DependencyGraph } from "@/components/DependencyGraph";
+import { ScoreBadge } from "@/components/ScoreBadge";
+import { calculateComponentScore, getImprovementSuggestions } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const components = getAllComponents();
@@ -28,6 +30,9 @@ export default async function ComponentDetailPage({
                          dependencyData.dependents.length > 0 ||
                          dependencyData.indirectDependencies.length > 0 ||
                          dependencyData.indirectDependents.length > 0;
+  
+  const score = calculateComponentScore(component);
+  const suggestions = getImprovementSuggestions(score);
 
   const lifecycleColors: Record<string, string> = {
     production: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -148,6 +153,129 @@ export default async function ComponentDetailPage({
           </div>
         </div>
       )}
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Quality Scorecard
+            </h2>
+          </div>
+          <ScoreBadge score={score} size="lg" showLabel />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+              Metadata
+            </div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {score.breakdown.metadata}
+              <span className="text-base text-gray-500 dark:text-gray-400 font-normal">/40</span>
+            </div>
+          </div>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+              Architecture
+            </div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {score.breakdown.architecture}
+              <span className="text-base text-gray-500 dark:text-gray-400 font-normal">/30</span>
+            </div>
+          </div>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+              Lifecycle
+            </div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {score.breakdown.lifecycle}
+              <span className="text-base text-gray-500 dark:text-gray-400 font-normal">/30</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              Completed Criteria
+            </h3>
+            <div className="space-y-2">
+              {score.details.hasDescription && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Has description</span>
+                </div>
+              )}
+              {score.details.hasThreePlusTags && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Has 3+ tags</span>
+                </div>
+              )}
+              {score.details.hasDocumentationLink && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Has documentation link</span>
+                </div>
+              )}
+              {score.details.hasOwner && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Has owner</span>
+                </div>
+              )}
+              {score.details.isPartOfSystem && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Part of a system</span>
+                </div>
+              )}
+              {score.details.hasDependencies && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Has dependencies defined</span>
+                </div>
+              )}
+              {score.details.lifecycle === 'production' && (
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Production lifecycle</span>
+                </div>
+              )}
+              {Object.values(score.details).filter(v => v === true).length === 0 && score.details.lifecycle !== 'production' && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                  No criteria completed yet
+                </p>
+              )}
+            </div>
+          </div>
+
+          {suggestions.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                Improvement Suggestions
+              </h3>
+              <div className="space-y-2">
+                {suggestions.map((suggestion, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <XCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
+                    <span>{suggestion}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {score.total === 100 && (
+          <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium">
+              🎉 Perfect score! This component meets all quality criteria.
+            </p>
+          </div>
+        )}
+      </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-6">
