@@ -1,5 +1,6 @@
 import { Component } from '@/plugins/catalog/types';
 import yaml from 'js-yaml';
+import { GitActivityMetrics } from '@/lib/git-activity/types';
 
 export interface GitHubFile {
   name: string;
@@ -271,6 +272,77 @@ export class GitHubClient {
       }
       throw new GitHubClientError(
         `Failed to list repositories: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private getCountFromLinkHeader(linkHeader: string | null, currentPageSize: number): number {
+    if (!linkHeader) {
+      return currentPageSize;
+    }
+
+    const lastLink = linkHeader.split(',').find((link) => link.includes('rel="last"'));
+    if (!lastLink) {
+      return currentPageSize;
+    }
+
+    const match = lastLink.match(/[?&]page=(\d+)/);
+    if (!match) {
+      return currentPageSize;
+    }
+
+    const lastPage = parseInt(match[1], 10);
+    const perPage = 30;
+    return Math.min(lastPage * perPage, 1000);
+  }
+
+  async getRepositoryActivity(owner: string, repo: string): Promise<GitActivityMetrics> {
+    try {
+      let lastCommitDate: string | null = null;
+      let openIssuesCount = 0;
+      let openPullRequestsCount = 0;
+
+      const commitsUrl = `${this.baseUrl}/repos/${owner}/${repo}/commits?per_page=1`;
+      const commitsResponse = await this.fetch(commitsUrl);
+      if (commitsResponse.ok) {
+        const commits = await commitsResponse.json() as Array<{ commit: { author: { date: string } } }>;
+        if (commits.length > 0) {
+          lastCommitDate = commits[0].commit.author.date;
+        }
+      }
+
+      const issuesUrl = `${this.baseUrl}/repos/${owner}/${repo}/issues?state=open&per_page=100`;
+      const issuesResponse = await this.fetch(issuesUrl);
+      if (issuesResponse.ok) {
+        const issues = await issuesResponse.json() as Array<{ pull_request?: unknown }>;
+        const actualIssues = issues.filter((issue) => !issue.pull_request);
+        openIssuesCount = actualIssues.length;
+        
+        const linkHeader = issuesResponse.headers.get('Link');
+        if (linkHeader && issues.length === 100) {
+          openIssuesCount = this.getCountFromLinkHeader(linkHeader, actualIssues.length);
+        }
+      }
+
+      const pullsUrl = `${this.baseUrl}/repos/${owner}/${repo}/pulls?state=open&per_page=1`;
+      const pullsResponse = await this.fetch(pullsUrl);
+      if (pullsResponse.ok) {
+        const linkHeader = pullsResponse.headers.get('Link');
+        openPullRequestsCount = this.getCountFromLinkHeader(linkHeader, 0);
+      }
+
+      return {
+        lastCommitDate,
+        openIssuesCount,
+        openPullRequestsCount,
+        source: 'github',
+      };
+    } catch (error) {
+      if (error instanceof GitHubClientError) {
+        throw error;
+      }
+      throw new GitHubClientError(
+        `Failed to fetch repository activity: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
