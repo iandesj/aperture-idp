@@ -1,10 +1,11 @@
 import { getComponentByName, getAllComponents, getDependencyGraph } from "@/lib/catalog";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Network, CheckCircle2, XCircle, Award } from "lucide-react";
+import { ArrowLeft, ExternalLink, Network, CheckCircle2, XCircle, Award, GitBranch, AlertCircle, Activity } from "lucide-react";
 import { DependencyGraph } from "@/components/DependencyGraph";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore, getImprovementSuggestions } from "@/lib/scoring";
+import { getActivityMetrics } from "@/lib/git-activity/service";
 import { HideButton } from "./HideButton";
 import { normalizeGroupRef, getGroupByRef } from "@/lib/groups";
 
@@ -33,7 +34,8 @@ export default async function ComponentDetailPage({
                          dependencyData.indirectDependencies.length > 0 ||
                          dependencyData.indirectDependents.length > 0;
   
-  const score = calculateComponentScore(component);
+  const activityMetrics = await getActivityMetrics(component);
+  const score = calculateComponentScore(component, activityMetrics);
   const suggestions = getImprovementSuggestions(score);
 
   const lifecycleColors: Record<string, string> = {
@@ -191,7 +193,7 @@ export default async function ComponentDetailPage({
           <ScoreBadge score={score} size="lg" showLabel />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
             <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
               Metadata
@@ -217,6 +219,15 @@ export default async function ComponentDetailPage({
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {score.breakdown.lifecycle}
               <span className="text-base text-gray-500 dark:text-gray-400 font-normal">/30</span>
+            </div>
+          </div>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+              Activity
+            </div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {score.breakdown.activity}
+              <span className="text-base text-gray-500 dark:text-gray-400 font-normal">/25</span>
             </div>
           </div>
         </div>
@@ -302,6 +313,63 @@ export default async function ComponentDetailPage({
           </div>
         )}
       </div>
+
+      {activityMetrics && score.details.activity && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 mb-6">
+            <Activity className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Repository Activity
+            </h2>
+            <span className={`ml-auto px-2.5 py-1 rounded text-xs font-medium ${
+              score.details.activity.isStale
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                : score.details.activity.lastCommitDaysAgo !== null && score.details.activity.lastCommitDaysAgo < 30
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+            }`}>
+              {score.details.activity.isStale ? 'Stale' : score.details.activity.lastCommitDaysAgo !== null && score.details.activity.lastCommitDaysAgo < 30 ? 'Active' : 'Moderate'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                <GitBranch className="w-4 h-4" />
+                Last Commit
+              </div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {score.details.activity.lastCommitDaysAgo !== null ? (
+                  score.details.activity.lastCommitDaysAgo === 0
+                    ? 'Today'
+                    : score.details.activity.lastCommitDaysAgo === 1
+                    ? '1 day ago'
+                    : `${score.details.activity.lastCommitDaysAgo} days ago`
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400">No commits found</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                <AlertCircle className="w-4 h-4" />
+                Open Issues
+              </div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {score.details.activity.openIssuesCount}
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                <GitBranch className="w-4 h-4" />
+                Open {activityMetrics.source === 'github' ? 'Pull Requests' : 'Merge Requests'}
+              </div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {score.details.activity.openPullRequestsCount}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-6">
