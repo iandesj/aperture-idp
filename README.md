@@ -2,6 +2,8 @@
 
 An extensible Internal Developer Portal built with Next.js, focused on software cataloging and component discovery.
 
+![Aperture IDP screenshot](public/Screenshot%202025-10-29%20at%2011.50.40%E2%80%AFPM.png)
+
 ## Features
 
 - **Software Catalog**: Manage and discover software components using Backstage-compatible YAML definitions
