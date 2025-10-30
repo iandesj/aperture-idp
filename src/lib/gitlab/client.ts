@@ -6,6 +6,7 @@ export interface GitLabProject {
   name: string;
   path_with_namespace: string;
   web_url: string;
+  default_branch?: string;
 }
 
 export interface GitLabRateLimit {
@@ -69,12 +70,21 @@ export class GitLabClient {
     return undefined;
   }
 
+  async getDefaultBranch(projectPath: string): Promise<string> {
+    const encodedPath = encodeURIComponent(projectPath);
+    const response = await this.fetch(`/projects/${encodedPath}`);
+    const data = (await response.json()) as GitLabProject;
+    console.log('defaultBranch', data.default_branch);
+    return data.default_branch || 'main';
+  }
+
   async checkCatalogFileExists(projectPath: string): Promise<boolean> {
     try {
+      const defaultBranch = await this.getDefaultBranch(projectPath);
       const encodedPath = encodeURIComponent(projectPath);
       const encodedFilePath = encodeURIComponent('catalog-info.yaml');
       const response = await this.fetch(
-        `/projects/${encodedPath}/repository/files/${encodedFilePath}?ref=main`
+        `/projects/${encodedPath}/repository/files/${encodedFilePath}?ref=${defaultBranch}`
       );
       return response.ok;
     } catch (error) {
@@ -87,10 +97,11 @@ export class GitLabClient {
 
   async fetchCatalogFile(projectPath: string): Promise<Component | null> {
     try {
+      const defaultBranch = await this.getDefaultBranch(projectPath);
       const encodedPath = encodeURIComponent(projectPath);
       const encodedFilePath = encodeURIComponent('catalog-info.yaml');
       const response = await this.fetch(
-        `/projects/${encodedPath}/repository/files/${encodedFilePath}/raw?ref=main`
+        `/projects/${encodedPath}/repository/files/${encodedFilePath}/raw?ref=${defaultBranch}`
       );
 
       const content = await response.text();

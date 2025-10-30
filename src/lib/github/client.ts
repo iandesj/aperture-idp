@@ -11,6 +11,12 @@ export interface GitHubFile {
   type: 'file' | 'dir';
 }
 
+export interface GitHubRepository {
+  name: string;
+  full_name: string;
+  default_branch: string;
+}
+
 export interface GitHubRateLimit {
   limit: number;
   remaining: number;
@@ -61,6 +67,21 @@ export class GitHubClient {
     }
 
     return response;
+  }
+
+  async getDefaultBranch(owner: string, repo: string): Promise<string> {
+    const url = `${this.baseUrl}/repos/${owner}/${repo}`;
+    try {
+      const response = await this.fetch(url);
+      if (!response.ok) {
+        return 'main';
+      }
+      const data = (await response.json()) as GitHubRepository;
+      console.log('defaultBranch', data.default_branch);
+      return data.default_branch || 'main';
+    } catch {
+      return 'main';
+    }
   }
 
   async checkCatalogFileExists(
