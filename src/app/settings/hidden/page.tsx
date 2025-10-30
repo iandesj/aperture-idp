@@ -1,5 +1,5 @@
 import { getHiddenComponentsWithData, getComponentSource } from "@/lib/catalog";
-import { Eye, EyeOff, ArrowLeft, Package } from "lucide-react";
+import { EyeOff, ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
 import { UnhideButton } from "./UnhideButton";
 
