@@ -3,6 +3,7 @@ import path from "path";
 import yaml from "js-yaml";
 import { Component } from "@/plugins/catalog/types";
 import { importStore } from "./import/store";
+import { calculateComponentScore, ComponentScore, ScoreTier } from "./scoring";
 
 const catalogDataDir = path.join(process.cwd(), "catalog-data");
 
@@ -220,5 +221,56 @@ export function getDependencyGraph(componentName: string, depth: number = 1): {
     dependents,
     indirectDependencies,
     indirectDependents,
+  };
+}
+
+export interface ComponentWithScore {
+  component: Component;
+  score: ComponentScore;
+}
+
+export function getComponentsWithScores(source?: ComponentSource): ComponentWithScore[] {
+  const components = getAllComponents(source);
+  return components.map((component) => ({
+    component,
+    score: calculateComponentScore(component),
+  }));
+}
+
+export interface ScorecardStats {
+  averageScore: number;
+  tierDistribution: Record<ScoreTier, number>;
+  topPerformers: ComponentWithScore[];
+  needsAttention: ComponentWithScore[];
+}
+
+export function getScorecardStats(): ScorecardStats {
+  const componentsWithScores = getComponentsWithScores();
+  
+  const totalScore = componentsWithScores.reduce((sum, cws) => sum + cws.score.total, 0);
+  const averageScore = componentsWithScores.length > 0 
+    ? Math.round(totalScore / componentsWithScores.length) 
+    : 0;
+  
+  const tierDistribution: Record<ScoreTier, number> = {
+    'gold': 0,
+    'silver': 0,
+    'bronze': 0,
+    'needs-improvement': 0,
+  };
+  
+  componentsWithScores.forEach((cws) => {
+    tierDistribution[cws.score.tier]++;
+  });
+  
+  const sorted = [...componentsWithScores].sort((a, b) => b.score.total - a.score.total);
+  const topPerformers = sorted.slice(0, 3);
+  const needsAttention = sorted.slice(-3).reverse();
+  
+  return {
+    averageScore,
+    tierDistribution,
+    topPerformers,
+    needsAttention,
   };
 }
