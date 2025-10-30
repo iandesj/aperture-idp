@@ -25,7 +25,7 @@ export function Sidebar() {
             </li>
           </ul>
         </div>
-        <div>
+        <div className="mb-6">
           <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
             Plugins
           </h3>
@@ -40,6 +40,21 @@ export function Sidebar() {
                 </Link>
               </li>
             ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+            Settings
+          </h3>
+          <ul>
+            <li>
+              <Link
+                href="/settings/hidden"
+                className="block py-2 text-gray-900 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium"
+              >
+                Hidden Components
+              </Link>
+            </li>
           </ul>
         </div>
       </nav>
