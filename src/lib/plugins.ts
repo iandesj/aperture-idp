@@ -3,6 +3,7 @@
 import { ReactElement } from "react";
 import { catalogPlugin } from "@/plugins/catalog";
 import { systemsPlugin } from "@/plugins/systems";
+import { teamsPlugin } from "@/plugins/teams";
 
 export interface AperturePlugin {
   id: string;
@@ -12,7 +13,8 @@ export interface AperturePlugin {
 
 const plugins: AperturePlugin[] = [
   catalogPlugin,
-  systemsPlugin
+  systemsPlugin,
+  teamsPlugin
 ];
 
 export function getPlugins(): AperturePlugin[] {

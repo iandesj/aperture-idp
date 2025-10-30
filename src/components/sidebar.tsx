@@ -23,6 +23,14 @@ export function Sidebar() {
                 Systems
               </Link>
             </li>
+            <li>
+              <Link
+                href="/teams"
+                className="block py-2 text-gray-900 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium"
+              >
+                Teams
+              </Link>
+            </li>
           </ul>
         </div>
         <div className="mb-6">
