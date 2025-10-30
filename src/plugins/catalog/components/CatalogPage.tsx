@@ -3,8 +3,10 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Component } from "../types";
-import { Search, X, Github, HardDrive, GitlabIcon as Gitlab } from "lucide-react";
+import { Search, X, Github, HardDrive, GitlabIcon as Gitlab, ArrowUpDown } from "lucide-react";
 import { CatalogImport } from "@/components/CatalogImport";
+import { ScoreBadge } from "@/components/ScoreBadge";
+import { calculateComponentScore, ScoreTier } from "@/lib/scoring";
 
 interface ComponentWithSource extends Component {
   _source?: 'local' | 'github' | 'gitlab';
@@ -18,6 +20,8 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedLifecycles, setSelectedLifecycles] = useState<string[]>([]);
+  const [selectedTiers, setSelectedTiers] = useState<ScoreTier[]>([]);
+  const [sortBy, setSortBy] = useState<'name' | 'score-high' | 'score-low'>('name');
 
   const availableTypes = useMemo(() => {
     return Array.from(new Set(allComponents.map((c) => c.spec.type))).sort();
@@ -28,7 +32,12 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
   }, [allComponents]);
 
   const filteredComponents = useMemo(() => {
-    return allComponents.filter((component) => {
+    const withScores = allComponents.map((component) => ({
+      component,
+      score: calculateComponentScore(component),
+    }));
+
+    let filtered = withScores.filter(({ component, score }) => {
       const matchesSearch =
         searchQuery === "" ||
         component.metadata.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -44,9 +53,24 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
         selectedLifecycles.length === 0 ||
         selectedLifecycles.includes(component.spec.lifecycle);
 
-      return matchesSearch && matchesType && matchesLifecycle;
+      const matchesTier =
+        selectedTiers.length === 0 || selectedTiers.includes(score.tier);
+
+      return matchesSearch && matchesType && matchesLifecycle && matchesTier;
     });
-  }, [allComponents, searchQuery, selectedTypes, selectedLifecycles]);
+
+    if (sortBy === 'score-high') {
+      filtered = filtered.sort((a, b) => b.score.total - a.score.total);
+    } else if (sortBy === 'score-low') {
+      filtered = filtered.sort((a, b) => a.score.total - b.score.total);
+    } else {
+      filtered = filtered.sort((a, b) =>
+        a.component.metadata.name.localeCompare(b.component.metadata.name)
+      );
+    }
+
+    return filtered;
+  }, [allComponents, searchQuery, selectedTypes, selectedLifecycles, selectedTiers, sortBy]);
 
   const toggleType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -60,14 +84,22 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
     );
   };
 
+  const toggleTier = (tier: ScoreTier) => {
+    setSelectedTiers((prev) =>
+      prev.includes(tier) ? prev.filter((t) => t !== tier) : [...prev, tier]
+    );
+  };
+
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedTypes([]);
     setSelectedLifecycles([]);
+    setSelectedTiers([]);
+    setSortBy('name');
   };
 
   const hasActiveFilters =
-    searchQuery !== "" || selectedTypes.length > 0 || selectedLifecycles.length > 0;
+    searchQuery !== "" || selectedTypes.length > 0 || selectedLifecycles.length > 0 || selectedTiers.length > 0 || sortBy !== 'name';
 
   const lifecycleColors: Record<string, string> = {
     production: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -146,6 +178,81 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
               ))}
             </div>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Quality Tier
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {(['gold', 'silver', 'bronze', 'needs-improvement'] as ScoreTier[]).map((tier) => {
+                const tierColors = {
+                  gold: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                  silver: 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+                  bronze: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+                  'needs-improvement': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                };
+                const tierLabels = {
+                  gold: 'Gold',
+                  silver: 'Silver',
+                  bronze: 'Bronze',
+                  'needs-improvement': 'Needs Work',
+                };
+                return (
+                  <button
+                    key={tier}
+                    onClick={() => toggleTier(tier)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      selectedTiers.includes(tier)
+                        ? tierColors[tier]
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {tierLabels[tier]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Sort By
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSortBy('name')}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === 'name'
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                }`}
+              >
+                Name
+              </button>
+              <button
+                onClick={() => setSortBy('score-high')}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === 'score-high'
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                }`}
+              >
+                <ArrowUpDown className="w-3 h-3" />
+                Score: High
+              </button>
+              <button
+                onClick={() => setSortBy('score-low')}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                  sortBy === 'score-low'
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                }`}
+              >
+                <ArrowUpDown className="w-3 h-3" />
+                Score: Low
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -189,7 +296,7 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredComponents.map((component) => {
+          {filteredComponents.map(({ component, score }) => {
             const source = component._source;
             return (
               <Link
@@ -201,24 +308,27 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {component.metadata.name}
                   </h3>
-                  {source === 'github' && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
-                      <Github className="w-3 h-3" />
-                      <span>GitHub</span>
-                    </div>
-                  )}
-                  {source === 'gitlab' && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-xs text-orange-700 dark:text-orange-400">
-                      <Gitlab className="w-3 h-3" />
-                      <span>GitLab</span>
-                    </div>
-                  )}
-                  {source === 'local' && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-400">
-                      <HardDrive className="w-3 h-3" />
-                      <span>Local</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <ScoreBadge score={score} size="sm" />
+                    {source === 'github' && (
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
+                        <Github className="w-3 h-3" />
+                        <span>GitHub</span>
+                      </div>
+                    )}
+                    {source === 'gitlab' && (
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-xs text-orange-700 dark:text-orange-400">
+                        <Gitlab className="w-3 h-3" />
+                        <span>GitLab</span>
+                      </div>
+                    )}
+                    {source === 'local' && (
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-400">
+                        <HardDrive className="w-3 h-3" />
+                        <span>Local</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   {component.metadata.description || "No description"}
