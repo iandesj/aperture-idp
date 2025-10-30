@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getGroupByRef, normalizeGroupRef } from "@/lib/groups";
 import { getComponentsByGroupRef, getGroupAverageScore, getGroupStats } from "@/lib/catalog";
@@ -21,6 +22,13 @@ export default async function TeamDetailPage({ params }: Params) {
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/teams"
+        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Teams
+      </Link>
       <div>
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">{group.metadata.name}</h1>
         {group.metadata.description && (
