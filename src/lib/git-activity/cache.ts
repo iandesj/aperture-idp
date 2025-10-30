@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { GitActivityMetrics, CachedActivityMetrics } from './types';
 
-const CACHE_TTL_MS = 60 * 60 * 1000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 class GitActivityCache {
   private cache: Map<string, CachedActivityMetrics> = new Map();
