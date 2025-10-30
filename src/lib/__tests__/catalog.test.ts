@@ -10,7 +10,8 @@ import {
   getComponentsBySystem,
   getComponentDependencies,
   getComponentDependents,
-  getDependencyGraph
+  getDependencyGraph,
+  getHiddenComponentsWithData
 } from '../catalog';
 import { Component } from '@/plugins/catalog/types';
 
@@ -21,9 +22,18 @@ jest.mock('../import/store', () => ({
     getImportedComponents: jest.fn(() => []),
   },
 }));
+jest.mock('../hidden/store', () => ({
+  hiddenStore: {
+    isHidden: jest.fn(() => false),
+    getHiddenComponents: jest.fn(() => []),
+  },
+}));
 
 const mockFs = fs as jest.Mocked<typeof fs>;
 const mockYaml = yaml as jest.Mocked<typeof yaml>;
+
+import { hiddenStore } from '../hidden/store';
+const mockHiddenStore = hiddenStore as jest.Mocked<typeof hiddenStore>;
 
 const mockComponent1: Component = {
   apiVersion: 'backstage.io/v1alpha1',
@@ -610,6 +620,140 @@ describe('catalog', () => {
       expect(result.component.metadata.name).toBe('comp1');
       expect(result.dependencies).toHaveLength(1);
       expect(result.dependents).toHaveLength(1);
+    });
+  });
+
+  describe('hidden components', () => {
+    beforeEach(() => {
+      mockHiddenStore.isHidden.mockClear();
+      mockHiddenStore.getHiddenComponents.mockClear();
+    });
+
+    describe('getAllComponents with hidden components', () => {
+      it('should filter out hidden components by default', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load
+          .mockReturnValueOnce(mockComponent1)
+          .mockReturnValueOnce(mockComponent2)
+          .mockReturnValueOnce(mockComponent3);
+        
+        mockHiddenStore.isHidden.mockImplementation((name: string) => name === 'component-2');
+
+        const result = getAllComponents();
+
+        expect(result).toHaveLength(2);
+        expect(result.find(c => c.metadata.name === 'component-1')).toBeDefined();
+        expect(result.find(c => c.metadata.name === 'component-2')).toBeUndefined();
+        expect(result.find(c => c.metadata.name === 'component-3')).toBeDefined();
+      });
+
+      it('should include hidden components when includeHidden is true', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load
+          .mockReturnValueOnce(mockComponent1)
+          .mockReturnValueOnce(mockComponent2);
+        
+        mockHiddenStore.isHidden.mockImplementation((name: string) => name === 'component-2');
+
+        const result = getAllComponents(undefined, true);
+
+        expect(result).toHaveLength(2);
+        expect(result.find(c => c.metadata.name === 'component-2')).toBeDefined();
+      });
+    });
+
+    describe('getComponentByName with hidden components', () => {
+      it('should not find hidden component by default', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load
+          .mockReturnValueOnce(mockComponent1)
+          .mockReturnValueOnce(mockComponent2);
+        
+        mockHiddenStore.isHidden.mockImplementation((name: string) => name === 'component-2');
+
+        const result = getComponentByName('component-2');
+
+        expect(result).toBeNull();
+      });
+
+      it('should find hidden component when includeHidden is true', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load
+          .mockReturnValueOnce(mockComponent1)
+          .mockReturnValueOnce(mockComponent2);
+        
+        mockHiddenStore.isHidden.mockImplementation((name: string) => name === 'component-2');
+
+        const result = getComponentByName('component-2', true);
+
+        expect(result).toEqual(mockComponent2);
+      });
+    });
+
+    describe('getHiddenComponentsWithData', () => {
+      it('should return full component data for hidden components', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load
+          .mockReturnValueOnce(mockComponent1)
+          .mockReturnValueOnce(mockComponent2);
+        
+        mockHiddenStore.getHiddenComponents.mockReturnValue(['component-2']);
+        mockHiddenStore.isHidden.mockImplementation((name: string) => name === 'component-2');
+
+        const result = getHiddenComponentsWithData();
+
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual(mockComponent2);
+      });
+
+      it('should return empty array when no components are hidden', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load.mockReturnValueOnce(mockComponent1);
+        
+        mockHiddenStore.getHiddenComponents.mockReturnValue([]);
+
+        const result = getHiddenComponentsWithData();
+
+        expect(result).toEqual([]);
+      });
+
+      it('should filter out non-existent hidden components', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load.mockReturnValueOnce(mockComponent1);
+        
+        mockHiddenStore.getHiddenComponents.mockReturnValue(['component-1', 'nonexistent']);
+        mockHiddenStore.isHidden.mockReturnValue(true);
+
+        const result = getHiddenComponentsWithData();
+
+        expect(result).toHaveLength(1);
+        expect(result[0].metadata.name).toBe('component-1');
+      });
+    });
+
+    describe('stats with hidden components', () => {
+      it('should exclude hidden components from stats', () => {
+        mockFs.readdirSync.mockReturnValue(['c1.yaml', 'c2.yaml', 'c3.yaml'] as unknown as fs.Dirent[]);
+        mockFs.readFileSync.mockReturnValue('yaml');
+        mockYaml.load
+          .mockReturnValueOnce(mockComponent1)
+          .mockReturnValueOnce(mockComponent2)
+          .mockReturnValueOnce(mockComponent3);
+        
+        mockHiddenStore.isHidden.mockImplementation((name: string) => name === 'component-2');
+
+        const stats = getCatalogStats();
+
+        expect(stats.total).toBe(2);
+        expect(stats.byType.library).toBeUndefined();
+      });
     });
   });
 });

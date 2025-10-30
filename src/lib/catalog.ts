@@ -3,13 +3,14 @@ import path from "path";
 import yaml from "js-yaml";
 import { Component } from "@/plugins/catalog/types";
 import { importStore } from "./import/store";
+import { hiddenStore } from "./hidden/store";
 import { calculateComponentScore, ComponentScore, ScoreTier } from "./scoring";
 
 const catalogDataDir = path.join(process.cwd(), "catalog-data");
 
 export type ComponentSource = 'local' | 'github' | 'gitlab';
 
-export function getLocalComponents(): Component[] {
+export function getLocalComponents(includeHidden: boolean = false): Component[] {
   const fileNames = fs.readdirSync(catalogDataDir);
   const allComponentsData = fileNames.map((fileName) => {
     const fullPath = path.join(catalogDataDir, fileName);
@@ -17,11 +18,16 @@ export function getLocalComponents(): Component[] {
     const component = yaml.load(fileContents) as Component;
     return component;
   });
-  return allComponentsData;
+  
+  if (includeHidden) {
+    return allComponentsData;
+  }
+  
+  return allComponentsData.filter((component) => !hiddenStore.isHidden(component.metadata.name));
 }
 
-export function getAllComponents(source?: ComponentSource): Component[] {
-  const localComponents = getLocalComponents();
+export function getAllComponents(source?: ComponentSource, includeHidden: boolean = false): Component[] {
+  const localComponents = getLocalComponents(includeHidden);
   
   if (source === 'local') {
     return localComponents;
@@ -30,15 +36,27 @@ export function getAllComponents(source?: ComponentSource): Component[] {
   const allImportedComponents = importStore.getImportedComponents();
   
   if (source === 'github') {
-    return allImportedComponents
+    const githubComponents = allImportedComponents
       .filter((ic) => ic.source.type === 'github')
       .map((ic) => ic.component);
+    
+    if (includeHidden) {
+      return githubComponents;
+    }
+    
+    return githubComponents.filter((component) => !hiddenStore.isHidden(component.metadata.name));
   }
   
   if (source === 'gitlab') {
-    return allImportedComponents
+    const gitlabComponents = allImportedComponents
       .filter((ic) => ic.source.type === 'gitlab')
       .map((ic) => ic.component);
+    
+    if (includeHidden) {
+      return gitlabComponents;
+    }
+    
+    return gitlabComponents.filter((component) => !hiddenStore.isHidden(component.metadata.name));
   }
   
   // Merge local and imported, with local taking precedence for duplicates
@@ -46,7 +64,9 @@ export function getAllComponents(source?: ComponentSource): Component[] {
   
   // Add imported components first
   allImportedComponents.forEach((ic) => {
-    componentMap.set(ic.component.metadata.name, ic.component);
+    if (includeHidden || !hiddenStore.isHidden(ic.component.metadata.name)) {
+      componentMap.set(ic.component.metadata.name, ic.component);
+    }
   });
   
   // Override with local components (local takes precedence)
@@ -58,7 +78,7 @@ export function getAllComponents(source?: ComponentSource): Component[] {
 }
 
 export function getComponentSource(componentName: string): ComponentSource | null {
-  const localComponents = getLocalComponents();
+  const localComponents = getLocalComponents(true);
   const isLocal = localComponents.some((c) => c.metadata.name === componentName);
   
   if (isLocal) {
@@ -101,9 +121,16 @@ export function getRecentComponents(limit: number = 6): Component[] {
   return components.slice(0, limit);
 }
 
-export function getComponentByName(name: string): Component | null {
-  const components = getAllComponents();
+export function getComponentByName(name: string, includeHidden: boolean = false): Component | null {
+  const components = getAllComponents(undefined, includeHidden);
   return components.find((c) => c.metadata.name === name) || null;
+}
+
+export function getHiddenComponentsWithData(): Component[] {
+  const hiddenNames = hiddenStore.getHiddenComponents();
+  return hiddenNames
+    .map((name) => getComponentByName(name, true))
+    .filter((c): c is Component => c !== null);
 }
 
 export function getAllSystems(): string[] {
