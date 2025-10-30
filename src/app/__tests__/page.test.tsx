@@ -39,7 +39,7 @@ describe('Home Dashboard', () => {
           score: {
             total: 95,
             tier: 'gold' as const,
-            breakdown: { metadata: 40, architecture: 30, lifecycle: 25 },
+            breakdown: { metadata: 40, architecture: 30, lifecycle: 25, activity: 0 },
             details: {
               hasDescription: true,
               hasThreePlusTags: true,
@@ -63,7 +63,7 @@ describe('Home Dashboard', () => {
           score: {
             total: 30,
             tier: 'needs-improvement' as const,
-            breakdown: { metadata: 10, architecture: 20, lifecycle: 0 },
+            breakdown: { metadata: 10, architecture: 20, lifecycle: 0, activity: 0 },
             details: {
               hasDescription: false,
               hasThreePlusTags: false,

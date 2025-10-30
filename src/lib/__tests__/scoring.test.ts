@@ -47,6 +47,7 @@ describe('Scoring Logic', () => {
       expect(score.breakdown.metadata).toBe(40);
       expect(score.breakdown.architecture).toBe(30);
       expect(score.breakdown.lifecycle).toBe(30);
+      expect(score.breakdown.activity).toBe(0);
       expect(score.tier).toBe('gold');
       expect(score.details.hasDescription).toBe(true);
       expect(score.details.hasThreePlusTags).toBe(true);
@@ -74,6 +75,7 @@ describe('Scoring Logic', () => {
       expect(score.breakdown.metadata).toBe(10);
       expect(score.breakdown.architecture).toBe(0);
       expect(score.breakdown.lifecycle).toBe(0);
+      expect(score.breakdown.activity).toBe(0);
       expect(score.tier).toBe('needs-improvement');
     });
 
