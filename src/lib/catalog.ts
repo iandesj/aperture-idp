@@ -5,6 +5,7 @@ import { Component } from "@/plugins/catalog/types";
 import { importStore } from "./import/store";
 import { hiddenStore } from "./hidden/store";
 import { calculateComponentScore, ComponentScore, ScoreTier } from "./scoring";
+import { normalizeGroupRef, getGroupByRef } from "./groups";
 
 const catalogDataDir = path.join(process.cwd(), "catalog-data");
 
@@ -144,6 +145,54 @@ export function getAllSystems(): string[] {
   });
   
   return Array.from(systems).sort();
+}
+
+// Group ownership helpers (Backstage Group entities)
+export function getAllGroupRefs(): string[] {
+  const components = getAllComponents();
+  const refs = new Set<string>();
+  components.forEach((component) => {
+    if (component.spec.owner) {
+      refs.add(normalizeGroupRef(component.spec.owner));
+    }
+  });
+  return Array.from(refs).sort();
+}
+
+export function getComponentsByGroupRef(groupRef: string): Component[] {
+  const normalized = normalizeGroupRef(groupRef);
+  const components = getAllComponents();
+  return components.filter((c) => normalizeGroupRef(c.spec.owner) === normalized);
+}
+
+export function getUnresolvedOwners(): string[] {
+  const refs = getAllGroupRefs();
+  return refs.filter((ref) => !getGroupByRef(ref));
+}
+
+export function getGroupStats(groupRef: string) {
+  const components = getComponentsByGroupRef(groupRef);
+  const stats = {
+    total: components.length,
+    byType: {} as Record<string, number>,
+    byLifecycle: {} as Record<string, number>,
+  };
+
+  components.forEach((component) => {
+    stats.byType[component.spec.type] = (stats.byType[component.spec.type] || 0) + 1;
+    stats.byLifecycle[component.spec.lifecycle] = (stats.byLifecycle[component.spec.lifecycle] || 0) + 1;
+  });
+
+  return stats;
+}
+
+export function getGroupAverageScore(groupRef: string): number {
+  const components = getComponentsByGroupRef(groupRef);
+  if (components.length === 0) return 0;
+  const total = components
+    .map((c) => calculateComponentScore(c).total)
+    .reduce((a, b) => a + b, 0);
+  return Math.round(total / components.length);
 }
 
 export function getSystemStats() {
