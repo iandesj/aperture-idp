@@ -35,6 +35,7 @@ export default async function ComponentDetailPage({
                          dependencyData.indirectDependents.length > 0;
   
   const activityMetrics = await getActivityMetrics(component);
+  console.log('activityMetrics', activityMetrics);
   const score = calculateComponentScore(component, activityMetrics);
   const suggestions = getImprovementSuggestions(score);
 

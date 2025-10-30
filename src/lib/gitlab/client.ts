@@ -253,7 +253,6 @@ export class GitLabClient {
 
       const projectResponse = await this.fetch(`/projects/${encodedPath}`);
       if (projectResponse.ok) {
-        const project = await projectResponse.json() as GitLabProject;
         const commitsUrl = `/projects/${encodedPath}/repository/commits?per_page=1`;
         const commitsResponse = await this.fetch(commitsUrl);
         if (commitsResponse.ok) {
