@@ -109,7 +109,8 @@ export async function importFromGitHub(): Promise<ImportResult> {
       // Get default branch for URL
       const defaultBranch = await client.getDefaultBranch(owner, repo);
       const url = `https://github.com/${owner}/${repo}/blob/${defaultBranch}/catalog-info.yaml`;
-      importStore.addImportedComponent('github', repoString, component, url);
+      const repositoryUrl = `https://github.com/${owner}/${repo}`;
+      importStore.addImportedComponent('github', repoString, component, url, repositoryUrl);
 
       result.success++;
     } catch (error) {

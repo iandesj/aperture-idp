@@ -10,6 +10,7 @@ export interface ImportedComponent {
     type: SourceType;
     repository: string;
     url: string;
+    repositoryUrl: string;
   };
   lastSynced: string;
 }
@@ -53,7 +54,8 @@ class ImportStore {
     sourceType: SourceType,
     repository: string,
     component: Component,
-    url: string
+    url: string,
+    repositoryUrl: string
   ): void {
     const key = `${sourceType}:${repository}:${component.metadata.name}`;
     
@@ -63,6 +65,7 @@ class ImportStore {
         type: sourceType,
         repository,
         url,
+        repositoryUrl,
       },
       lastSynced: new Date().toISOString(),
     });

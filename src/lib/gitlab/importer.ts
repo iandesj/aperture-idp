@@ -120,7 +120,8 @@ export async function importFromGitLab(): Promise<ImportResult> {
       // Get default branch for URL
       const defaultBranch = await client.getDefaultBranch(projectPath);
       const url = `https://gitlab.com/${projectPath}/-/blob/${defaultBranch}/catalog-info.yaml`;
-      importStore.addImportedComponent('gitlab', projectPath, component, url);
+      const repositoryUrl = `https://gitlab.com/${projectPath}`;
+      importStore.addImportedComponent('gitlab', projectPath, component, url, repositoryUrl);
 
       result.success++;
     } catch (error) {

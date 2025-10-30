@@ -121,7 +121,8 @@ describe('GitLab Importer', () => {
         'gitlab',
         'my-group/project-1',
         mockComponent1,
-        'https://gitlab.com/my-group/project-1/-/blob/main/catalog-info.yaml'
+        'https://gitlab.com/my-group/project-1/-/blob/main/catalog-info.yaml',
+        'https://gitlab.com/my-group/project-1'
       );
     });
 

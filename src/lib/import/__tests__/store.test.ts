@@ -56,7 +56,8 @@ describe('ImportStore', () => {
         'github',
         'org/repo-1',
         mockComponent1,
-        'https://github.com/org/repo-1/blob/main/catalog-info.yaml'
+        'https://github.com/org/repo-1/blob/main/catalog-info.yaml',
+        'https://github.com/org/repo-1'
       );
 
       expect(fs.writeFileSync).toHaveBeenCalled();
@@ -76,7 +77,8 @@ describe('ImportStore', () => {
         'gitlab',
         'group/project-1',
         mockComponent2,
-        'https://gitlab.com/group/project-1/-/blob/main/catalog-info.yaml'
+        'https://gitlab.com/group/project-1/-/blob/main/catalog-info.yaml',
+        'https://gitlab.com/group/project-1'
       );
 
       expect(fs.writeFileSync).toHaveBeenCalled();
@@ -111,6 +113,7 @@ describe('ImportStore', () => {
             type: 'github',
             repository: 'org/repo-1',
             url: 'https://github.com/org/repo-1',
+            repositoryUrl: 'https://github.com/org/repo-1',
           },
           lastSynced: '2025-10-29T12:00:00Z',
         },
@@ -120,6 +123,7 @@ describe('ImportStore', () => {
             type: 'gitlab',
             repository: 'group/project-1',
             url: 'https://gitlab.com/group/project-1',
+            repositoryUrl: 'https://gitlab.com/group/project-1',
           },
           lastSynced: '2025-10-29T12:00:00Z',
         },
@@ -171,6 +175,7 @@ describe('ImportStore', () => {
             type: 'github',
             repository: 'org/repo-1',
             url: 'https://github.com/org/repo-1',
+            repositoryUrl: 'https://github.com/org/repo-1',
           },
           lastSynced: '2025-10-29T12:00:00Z',
         },
@@ -192,6 +197,7 @@ describe('ImportStore', () => {
             type: 'gitlab',
             repository: 'group/project-1',
             url: 'https://gitlab.com/group/project-1',
+            repositoryUrl: 'https://gitlab.com/group/project-1',
           },
           lastSynced: '2025-10-29T12:00:00Z',
         },
@@ -214,6 +220,7 @@ describe('ImportStore', () => {
             type: 'github',
             repository: 'org/repo-1',
             url: 'https://github.com/org/repo-1',
+            repositoryUrl: 'https://github.com/org/repo-1',
           },
           lastSynced: '2025-10-29T12:00:00Z',
         },
@@ -236,6 +243,7 @@ describe('ImportStore', () => {
             type: 'gitlab',
             repository: 'group/project-1',
             url: 'https://gitlab.com/group/project-1',
+            repositoryUrl: 'https://gitlab.com/group/project-1',
           },
           lastSynced: '2025-10-29T12:00:00Z',
         },
@@ -282,12 +290,14 @@ describe('ImportStore', () => {
         'github',
         'org/repo-1',
         mockComponent1,
+        'https://github.com/org/repo-1',
         'https://github.com/org/repo-1'
       );
       importStore.addImportedComponent(
         'github',
         'org/repo-2',
         mockComponent2,
+        'https://github.com/org/repo-2',
         'https://github.com/org/repo-2'
       );
 
@@ -312,12 +322,14 @@ describe('ImportStore', () => {
         'gitlab',
         'group/project-1',
         mockComponent1,
+        'https://gitlab.com/group/project-1',
         'https://gitlab.com/group/project-1'
       );
       importStore.addImportedComponent(
         'gitlab',
         'group/project-2',
         mockComponent2,
+        'https://gitlab.com/group/project-2',
         'https://gitlab.com/group/project-2'
       );
 
@@ -342,7 +354,7 @@ describe('ImportStore', () => {
       const mockData = {
         'github:org/repo-1:service-1': {
           component: mockComponent1,
-          source: { type: 'github', repository: 'org/repo-1', url: '' },
+          source: { type: 'github', repository: 'org/repo-1', url: '', repositoryUrl: 'https://github.com/org/repo-1' },
           lastSynced: '2025-10-29T12:00:00Z',
         },
         'github:org/repo-2:service-2': {
@@ -352,7 +364,7 @@ describe('ImportStore', () => {
         },
         'gitlab:group/project-1:service-3': {
           component: { ...mockComponent1, metadata: { name: 'service-3' } },
-          source: { type: 'gitlab', repository: 'group/project-1', url: '' },
+          source: { type: 'gitlab', repository: 'group/project-1', url: '', repositoryUrl: 'https://gitlab.com/group/project-1' },
           lastSynced: '2025-10-29T14:00:00Z',
         },
       };
@@ -385,12 +397,12 @@ describe('ImportStore', () => {
       const mockData = {
         'github:org/repo-1:service-1': {
           component: mockComponent1,
-          source: { type: 'github', repository: 'org/repo-1', url: '' },
+          source: { type: 'github', repository: 'org/repo-1', url: '', repositoryUrl: 'https://github.com/org/repo-1' },
           lastSynced: '2025-10-29T12:00:00Z',
         },
         'github:org/repo-1:service-2': {
           component: mockComponent2,
-          source: { type: 'github', repository: 'org/repo-1', url: '' },
+          source: { type: 'github', repository: 'org/repo-1', url: '', repositoryUrl: 'https://github.com/org/repo-1' },
           lastSynced: '2025-10-29T12:00:00Z',
         },
       };
