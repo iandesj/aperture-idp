@@ -1,15 +1,19 @@
+"use client";
+
 import Link from "next/link";
-import { getAllGroups } from "@/lib/groups";
-import { getAllGroupRefs, getGroupAverageScore, getGroupStats } from "@/lib/catalog";
 import { Users, Award } from "lucide-react";
 
-export function TeamsPage() {
-  const groups = getAllGroups();
-  const ownerRefs = new Set(getAllGroupRefs());
+interface TeamItem {
+  name: string;
+  description: string;
+  ref: string;
+  stats: { total: number; byType: Record<string, number>; byLifecycle: Record<string, number> };
+  averageScore: number;
+  href: string;
+}
 
-  const displayGroups = groups
-    .filter((g) => ownerRefs.has(`group:${(g.metadata.namespace || 'default').toLowerCase()}/${g.metadata.name.toLowerCase()}`))
-    .sort((a, b) => a.metadata.name.localeCompare(b.metadata.name));
+export function TeamsPage({ items }: { items: TeamItem[] }) {
+  const displayGroups = items;
 
   return (
     <div className="space-y-6">
@@ -20,16 +24,10 @@ export function TeamsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {displayGroups.map((group) => {
-          const ns = (group.metadata.namespace || 'default').toLowerCase();
-          const ref = `group:${ns}/${group.metadata.name.toLowerCase()}`;
-          const stats = getGroupStats(ref);
-          const avg = getGroupAverageScore(ref);
-          const href = `/teams/${group.metadata.name}`;
-
           return (
             <Link
-              key={ref}
-              href={href}
+              key={group.ref}
+              href={group.href}
               className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow cursor-pointer block"
             >
               <div className="flex items-start justify-between mb-4">
@@ -39,10 +37,10 @@ export function TeamsPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {group.metadata.name}
+                      {group.name}
                     </h3>
-                    {group.metadata.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{group.metadata.description}</p>
+                    {group.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{group.description}</p>
                     )}
                   </div>
                 </div>
@@ -51,11 +49,11 @@ export function TeamsPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Users className="w-4 h-4" />
-                  <span>{stats.total} component{stats.total !== 1 ? 's' : ''}</span>
+                  <span>{group.stats.total} component{group.stats.total !== 1 ? 's' : ''}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Award className="w-4 h-4" />
-                  <span>Avg score: <span className="font-semibold text-gray-900 dark:text-gray-100">{avg}</span></span>
+                  <span>Avg score: <span className="font-semibold text-gray-900 dark:text-gray-100">{group.averageScore}</span></span>
                 </div>
               </div>
             </Link>
