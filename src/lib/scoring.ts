@@ -1,4 +1,5 @@
 import { Component } from "@/plugins/catalog/types";
+import { GitActivityMetrics, getDaysSinceLastCommit } from "@/lib/git-activity/types";
 
 export type ScoreTier = 'gold' | 'silver' | 'bronze' | 'needs-improvement';
 
@@ -8,6 +9,7 @@ export interface ComponentScore {
     metadata: number;
     architecture: number;
     lifecycle: number;
+    activity: number;
   };
   tier: ScoreTier;
   details: {
@@ -18,13 +20,23 @@ export interface ComponentScore {
     isPartOfSystem: boolean;
     hasDependencies: boolean;
     lifecycle: string;
+    activity?: {
+      lastCommitDaysAgo: number | null;
+      openIssuesCount: number;
+      openPullRequestsCount: number;
+      isStale: boolean;
+    };
   };
 }
 
-export function calculateComponentScore(component: Component): ComponentScore {
+export function calculateComponentScore(
+  component: Component,
+  activityMetrics?: GitActivityMetrics | null
+): ComponentScore {
   let metadataScore = 0;
   let architectureScore = 0;
   let lifecycleScore = 0;
+  let activityScore = 0;
 
   const hasDescription = !!component.metadata.description;
   const hasThreePlusTags = (component.metadata.tags?.length ?? 0) >= 3;
@@ -47,7 +59,34 @@ export function calculateComponentScore(component: Component): ComponentScore {
     lifecycleScore = 15;
   }
 
-  const total = metadataScore + architectureScore + lifecycleScore;
+  let activityDetails: ComponentScore['details']['activity'] | undefined;
+  if (activityMetrics) {
+    const daysSinceLastCommit = getDaysSinceLastCommit(activityMetrics.lastCommitDate);
+    
+    if (daysSinceLastCommit !== null) {
+      if (daysSinceLastCommit < 30) {
+        activityScore = 25;
+      } else if (daysSinceLastCommit < 90) {
+        activityScore = 15;
+      } else {
+        activityScore = 0;
+      }
+    }
+
+    const totalOpenItems = activityMetrics.openIssuesCount + activityMetrics.openPullRequestsCount;
+    if (totalOpenItems > 10) {
+      activityScore = Math.max(0, activityScore - 5);
+    }
+
+    activityDetails = {
+      lastCommitDaysAgo: daysSinceLastCommit,
+      openIssuesCount: activityMetrics.openIssuesCount,
+      openPullRequestsCount: activityMetrics.openPullRequestsCount,
+      isStale: daysSinceLastCommit !== null && daysSinceLastCommit > 90,
+    };
+  }
+
+  const total = metadataScore + architectureScore + lifecycleScore + activityScore;
   const tier = getScoreTier(total);
 
   return {
@@ -56,6 +95,7 @@ export function calculateComponentScore(component: Component): ComponentScore {
       metadata: metadataScore,
       architecture: architectureScore,
       lifecycle: lifecycleScore,
+      activity: activityScore,
     },
     tier,
     details: {
@@ -66,6 +106,7 @@ export function calculateComponentScore(component: Component): ComponentScore {
       isPartOfSystem,
       hasDependencies,
       lifecycle: component.spec.lifecycle,
+      activity: activityDetails,
     },
   };
 }
@@ -146,6 +187,15 @@ export function getImprovementSuggestions(score: ComponentScore): string[] {
   }
   if (score.details.lifecycle !== 'production') {
     suggestions.push('Move to production lifecycle when ready');
+  }
+  
+  if (score.details.activity) {
+    if (score.details.activity.isStale) {
+      suggestions.push('Repository has not been updated in over 90 days - consider reviewing or archiving');
+    }
+    if (score.details.activity.openIssuesCount + score.details.activity.openPullRequestsCount > 10) {
+      suggestions.push('High number of open issues/PRs - consider prioritizing resolution to reduce tech debt');
+    }
   }
 
   return suggestions;
