@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { POST, DELETE, GET } from '../route';
 import { hiddenStore } from '@/lib/hidden/store';
 import { getComponentByName } from '@/lib/catalog';

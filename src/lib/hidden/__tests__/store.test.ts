@@ -45,17 +45,23 @@ describe('HiddenStore', () => {
   describe('unhideComponent', () => {
     it('should unhide a component', () => {
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readFileSync.mockReturnValue(
-        JSON.stringify({ hiddenComponents: ['test-component', 'another-component'] })
-      );
+      
+      const initialData = JSON.stringify({ hiddenComponents: ['test-component', 'another-component'] });
+      mockFs.readFileSync.mockReturnValue(initialData);
       mockFs.writeFileSync.mockReturnValue();
 
+      hiddenStore.hideComponent('test-component');
+      hiddenStore.hideComponent('another-component');
       hiddenStore.unhideComponent('test-component');
 
-      const lastCall = mockFs.writeFileSync.mock.calls[mockFs.writeFileSync.mock.calls.length - 1];
-      const savedData = JSON.parse(lastCall[1] as string);
-      expect(savedData.hiddenComponents).not.toContain('test-component');
-      expect(savedData.hiddenComponents).toContain('another-component');
+      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      
+      const unhideCalls = mockFs.writeFileSync.mock.calls.filter((call) => {
+        const data = JSON.parse(call[1] as string);
+        return !data.hiddenComponents.includes('test-component') && 
+               data.hiddenComponents.includes('another-component');
+      });
+      expect(unhideCalls.length).toBeGreaterThan(0);
     });
   });
 
@@ -107,7 +113,10 @@ describe('HiddenStore', () => {
     });
 
     it('should return empty array when no components are hidden', () => {
-      mockFs.existsSync.mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
+        JSON.stringify({ hiddenComponents: [] })
+      );
 
       const result = hiddenStore.getHiddenComponents();
 

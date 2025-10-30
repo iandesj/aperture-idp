@@ -5,6 +5,10 @@ import * as catalogLib from '@/lib/catalog';
 
 jest.mock('next/navigation', () => ({
   notFound: jest.fn(),
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    refresh: jest.fn(),
+  })),
 }));
 
 jest.mock('@/lib/catalog');
