@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Component } from "../types";
-import { Search, X, Github, HardDrive, GitlabIcon as Gitlab, ArrowUpDown } from "lucide-react";
+import { Search, X, Github, HardDrive, GitlabIcon as Gitlab, ArrowUpDown, LayoutGrid, List } from "lucide-react";
 import { CatalogImport } from "@/components/CatalogImport";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore, ScoreTier } from "@/lib/scoring";
@@ -23,6 +23,7 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
   const [selectedLifecycles, setSelectedLifecycles] = useState<string[]>([]);
   const [selectedTiers, setSelectedTiers] = useState<ScoreTier[]>([]);
   const [sortBy, setSortBy] = useState<'name' | 'score-high' | 'score-low'>('name');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const availableTypes = useMemo(() => {
     return Array.from(new Set(allComponents.map((c) => c.spec.type))).sort();
@@ -125,13 +126,39 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          Software Catalog
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Browse and discover all software components
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Software Catalog
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Browse and discover all software components
+          </p>
+        </div>
+        <div className="flex gap-2 border border-gray-300 dark:border-gray-600 rounded-lg p-1">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-2 rounded transition-colors ${
+              viewMode === 'grid'
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+            aria-label="Grid view"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-2 rounded transition-colors ${
+              viewMode === 'list'
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+            aria-label="List view"
+          >
+            <List className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -310,7 +337,7 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
             Try adjusting your search or clearing filters.
           </p>
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredComponents.map(({ component, score }) => {
             const source = component._source;
@@ -383,6 +410,122 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
               </Link>
             );
           })}
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Component
+                  </th>
+                  {scoringEnabled && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Score
+                    </th>
+                  )}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Lifecycle
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Owner
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Source
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredComponents.map(({ component, score }) => {
+                  const source = component._source;
+                  return (
+                    <tr
+                      key={component.metadata.name}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/catalog/${component.metadata.name}`}
+                          className="block cursor-pointer"
+                        >
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {component.metadata.name}
+                          </div>
+                          {component.metadata.description && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {component.metadata.description}
+                            </div>
+                          )}
+                          {component.metadata.tags && component.metadata.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {component.metadata.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </Link>
+                      </td>
+                      {scoringEnabled && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <ScoreBadge score={score} size="sm" />
+                        </td>
+                      )}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            typeColors[component.spec.type] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                          }`}
+                        >
+                          {component.spec.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            lifecycleColors[component.spec.lifecycle] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                          }`}
+                        >
+                          {component.spec.lifecycle}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                        {component.spec.owner}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {source === 'github' && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
+                            <Github className="w-3 h-3" />
+                            <span>GitHub</span>
+                          </div>
+                        )}
+                        {source === 'gitlab' && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 rounded text-xs text-orange-700 dark:text-orange-400">
+                            <Gitlab className="w-3 h-3" />
+                            <span>GitLab</span>
+                          </div>
+                        )}
+                        {source === 'local' && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-400">
+                            <HardDrive className="w-3 h-3" />
+                            <span>Local</span>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
