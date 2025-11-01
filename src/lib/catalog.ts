@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import { Component } from "@/plugins/catalog/types";
-import { importStore } from "./import/store";
+import { importStore, SourceType } from "./import/store";
 import { hiddenStore } from "./hidden/store";
 import { calculateComponentScore, ComponentScore, ScoreTier } from "./scoring";
 import { normalizeGroupRef, getGroupByRef } from "./groups";
@@ -117,6 +117,23 @@ export function getComponentSource(componentName: string): ComponentSource | nul
   
   if (importedComponent) {
     return importedComponent.source.type;
+  }
+  
+  return null;
+}
+
+export function getComponentRepositoryInfo(componentName: string): { type: SourceType; repositoryUrl: string; repository: string } | null {
+  const importedComponents = importStore.getImportedComponents();
+  const importedComponent = importedComponents.find(
+    (ic) => ic.component.metadata.name === componentName
+  );
+  
+  if (importedComponent) {
+    return {
+      type: importedComponent.source.type,
+      repositoryUrl: importedComponent.source.repositoryUrl,
+      repository: importedComponent.source.repository,
+    };
   }
   
   return null;

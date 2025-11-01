@@ -1,4 +1,4 @@
-import { getComponentByName, getAllComponents, getDependencyGraph } from "@/lib/catalog";
+import { getComponentByName, getAllComponents, getDependencyGraph, getComponentRepositoryInfo } from "@/lib/catalog";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Network, CheckCircle2, XCircle, Award, GitBranch, AlertCircle, Activity } from "lucide-react";
@@ -162,25 +162,48 @@ export default async function ComponentDetailPage({
         )}
       </div>
 
-      {component.metadata.links && component.metadata.links.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Links</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {component.metadata.links.map((link, idx) => (
-              <a
-                key={idx}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm hover:underline transition-colors p-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-              >
-                <ExternalLink className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">{link.title || link.url}</span>
-              </a>
-            ))}
+      {(() => {
+        const repositoryInfo = getComponentRepositoryInfo(componentName);
+        const hasRepository = !!repositoryInfo;
+        const hasLinks = component.metadata.links && component.metadata.links.length > 0;
+        
+        if (!hasRepository && !hasLinks) {
+          return null;
+        }
+        
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Links</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {hasRepository && (
+                <a
+                  href={repositoryInfo.repositoryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm hover:underline transition-colors p-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 font-medium"
+                >
+                  <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">
+                    {repositoryInfo.type === 'github' ? 'GitHub Repository' : 'GitLab Repository'}
+                  </span>
+                </a>
+              )}
+              {hasLinks && component.metadata.links!.map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm hover:underline transition-colors p-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                >
+                  <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{link.title || link.url}</span>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
