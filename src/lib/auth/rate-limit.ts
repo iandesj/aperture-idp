@@ -19,10 +19,11 @@ class MockRedis {
 }
 
 // Create Redis client - use real Redis in production, mock in development
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+const hasRedisConfig = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+const redis = hasRedisConfig
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     })
   : (new MockRedis() as unknown as Redis);
 
@@ -30,7 +31,7 @@ const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_RE
 export const authRateLimit = new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(5, '15 m'),
-  analytics: true,
+  analytics: hasRedisConfig, // Only enable analytics in production with real Redis
   ephemeralCache: new Map(),
 });
 
@@ -38,7 +39,7 @@ export const authRateLimit = new Ratelimit({
 export const apiRateLimit = new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(30, '1 m'),
-  analytics: true,
+  analytics: hasRedisConfig, // Only enable analytics in production with real Redis
   ephemeralCache: new Map(),
 });
 
@@ -46,7 +47,7 @@ export const apiRateLimit = new Ratelimit({
 export const createUserRateLimit = new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(3, '1 h'),
-  analytics: true,
+  analytics: hasRedisConfig, // Only enable analytics in production with real Redis
   ephemeralCache: new Map(),
 });
 
