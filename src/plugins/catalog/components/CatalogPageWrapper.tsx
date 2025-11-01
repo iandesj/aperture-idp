@@ -1,4 +1,5 @@
 import { getAllComponents, getComponentSource } from "@/lib/catalog";
+import { featuresStore } from "@/lib/features/store";
 import { CatalogPage } from "./CatalogPage";
 
 export function CatalogPageWrapper() {
@@ -10,6 +11,8 @@ export function CatalogPageWrapper() {
     _source: getComponentSource(component.metadata.name) || undefined,
   }));
   
-  return <CatalogPage components={componentsWithSource} />;
+  const scoringEnabled = featuresStore.isFeatureEnabled('scoringEnabled');
+  
+  return <CatalogPage components={componentsWithSource} scoringEnabled={scoringEnabled} />;
 }
 

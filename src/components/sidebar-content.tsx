@@ -73,6 +73,14 @@ export function SidebarContent() {
                   Hidden Components
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/settings/admin"
+                  className="block py-2 text-gray-900 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium"
+                >
+                  Admin Settings
+                </Link>
+              </li>
             </ul>
           </div>
         </nav>

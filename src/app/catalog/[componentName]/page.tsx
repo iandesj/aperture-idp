@@ -6,6 +6,7 @@ import { DependencyGraph } from "@/components/DependencyGraph";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore, getImprovementSuggestions } from "@/lib/scoring";
 import { getActivityMetrics } from "@/lib/git-activity/service";
+import { featuresStore } from "@/lib/features/store";
 import { HideButton } from "./HideButton";
 import { normalizeGroupRef, getGroupByRef } from "@/lib/groups";
 
@@ -34,9 +35,15 @@ export default async function ComponentDetailPage({
                          dependencyData.indirectDependencies.length > 0 ||
                          dependencyData.indirectDependents.length > 0;
   
-  const activityMetrics = await getActivityMetrics(component);
-  const score = calculateComponentScore(component, activityMetrics);
-  const suggestions = getImprovementSuggestions(score);
+  const gitActivityEnabled = featuresStore.isFeatureEnabled('gitActivityEnabled');
+  const scoringEnabled = featuresStore.isFeatureEnabled('scoringEnabled');
+  
+  const activityMetrics = gitActivityEnabled ? await getActivityMetrics(component) : null;
+  const score = calculateComponentScore(component, activityMetrics, {
+    scoringEnabled,
+    gitActivityEnabled,
+  });
+  const suggestions = scoringEnabled ? getImprovementSuggestions(score) : [];
 
   const lifecycleColors: Record<string, string> = {
     production: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -205,16 +212,17 @@ export default async function ComponentDetailPage({
         );
       })()}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-gray-900 dark:text-gray-100" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Quality Scorecard
-            </h2>
+      {scoringEnabled && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Quality Scorecard
+              </h2>
+            </div>
+            <ScoreBadge score={score} size="lg" showLabel />
           </div>
-          <ScoreBadge score={score} size="lg" showLabel />
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
@@ -335,9 +343,10 @@ export default async function ComponentDetailPage({
             </p>
           </div>
         )}
-      </div>
+        </div>
+      )}
 
-      {activityMetrics && score.details.activity && (
+      {gitActivityEnabled && activityMetrics && score.details.activity && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 mb-6">
             <Activity className="w-5 h-5 text-gray-900 dark:text-gray-100" />

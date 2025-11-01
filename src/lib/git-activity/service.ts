@@ -5,8 +5,13 @@ import { GitHubClient } from '@/lib/github/client';
 import { GitLabClient } from '@/lib/gitlab/client';
 import { importStore } from '@/lib/import/store';
 import config from '@/lib/aperture.config';
+import { featuresStore } from '@/lib/features/store';
 
 export async function getActivityMetrics(component: Component): Promise<GitActivityMetrics | null> {
+  if (!featuresStore.isFeatureEnabled('gitActivityEnabled')) {
+    return null;
+  }
+
   const componentName = component.metadata.name;
 
   const importedComponents = importStore.getImportedComponents();

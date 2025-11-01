@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { verifyUser } from './users';
-import { generateTokenId, isTokenBlacklisted } from './token-blacklist';
+import { generateTokenId, isTokenBlacklisted, clearUserTokenBlacklist } from './token-blacklist';
 
 export const authConfig = {
   trustHost: true,
@@ -68,14 +68,21 @@ export const authConfig = {
         token.name = user.name;
         token.email = user.email;
         token.jti = generateTokenId();
+        // Clear user pattern blacklist on new login
+        // This allows new logins after signout without blocking them
+        if (user.id) {
+          const userId = parseInt(user.id);
+          clearUserTokenBlacklist(userId);
+        }
+        return token;
       }
 
-      // Check if token is blacklisted using the stored jti
+      // For existing tokens, check if they're blacklisted
       if (token.jti && isTokenBlacklisted(token.jti)) {
         throw new Error('Token has been revoked');
       }
 
-      // Also check by user ID pattern (for fallback blacklisting)
+      // Check by user ID pattern only for existing tokens (not during new login)
       if (token.id) {
         const userId = parseInt(token.id as string);
         const userPatternJti = `user-${userId}-all`;
@@ -88,18 +95,11 @@ export const authConfig = {
     },
     async session({ session, token }) {
       // Check if token is blacklisted before creating session
+      // Only check individual token JTI, not user pattern
+      // User pattern blacklist is checked in jwt callback for existing tokens only
       if (token.jti && isTokenBlacklisted(token.jti)) {
         // Throw error to prevent session creation
         throw new Error('Token has been revoked');
-      }
-
-      // Also check user pattern
-      if (token.id) {
-        const userId = parseInt(token.id as string);
-        const userPatternJti = `user-${userId}-all`;
-        if (isTokenBlacklisted(userPatternJti)) {
-          throw new Error('User tokens have been revoked');
-        }
       }
 
       if (token && session.user) {

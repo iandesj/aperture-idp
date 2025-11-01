@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getComponentByName } from '@/lib/catalog';
 import { getActivityMetrics } from '@/lib/git-activity/service';
+import { featuresStore } from '@/lib/features/store';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -9,6 +10,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
+    );
+  }
+
+  if (!featuresStore.isFeatureEnabled('gitActivityEnabled')) {
+    return NextResponse.json(
+      { error: 'Git activity feature is disabled' },
+      { status: 403 }
     );
   }
 

@@ -46,6 +46,15 @@ export function blacklistUserTokens(userId: number, expiresAt: number): void {
 }
 
 /**
+ * Clear the user pattern blacklist (allows new logins after signout)
+ */
+export function clearUserTokenBlacklist(userId: number): void {
+  const jti = `user-${userId}-all`;
+  const stmt = db.prepare('DELETE FROM token_blacklist WHERE jti = ?');
+  stmt.run(jti);
+}
+
+/**
  * Generate a unique token ID (JWT ID)
  */
 export function generateTokenId(): string {

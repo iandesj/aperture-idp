@@ -31,8 +31,37 @@ export interface ComponentScore {
 
 export function calculateComponentScore(
   component: Component,
-  activityMetrics?: GitActivityMetrics | null
+  activityMetrics?: GitActivityMetrics | null,
+  options?: {
+    scoringEnabled?: boolean;
+    gitActivityEnabled?: boolean;
+  }
 ): ComponentScore {
+  const scoringEnabled = options?.scoringEnabled ?? true;
+  const gitActivityEnabled = options?.gitActivityEnabled ?? true;
+  
+  if (!scoringEnabled) {
+    return {
+      total: 0,
+      breakdown: {
+        metadata: 0,
+        architecture: 0,
+        lifecycle: 0,
+        activity: 0,
+      },
+      tier: 'needs-improvement',
+      details: {
+        hasDescription: !!component.metadata.description,
+        hasThreePlusTags: (component.metadata.tags?.length ?? 0) >= 3,
+        hasDocumentationLink: (component.metadata.links?.length ?? 0) > 0,
+        hasOwner: !!component.spec.owner,
+        isPartOfSystem: !!component.spec.system,
+        hasDependencies: (component.spec.dependsOn?.length ?? 0) > 0,
+        lifecycle: component.spec.lifecycle,
+      },
+    };
+  }
+
   let metadataScore = 0;
   let architectureScore = 0;
   let lifecycleScore = 0;
@@ -60,7 +89,7 @@ export function calculateComponentScore(
   }
 
   let activityDetails: ComponentScore['details']['activity'] | undefined;
-  if (activityMetrics) {
+  if (gitActivityEnabled && activityMetrics) {
     const daysSinceLastCommit = getDaysSinceLastCommit(activityMetrics.lastCommitDate);
     
     if (daysSinceLastCommit !== null) {

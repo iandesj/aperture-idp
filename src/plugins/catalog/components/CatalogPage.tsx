@@ -14,9 +14,10 @@ interface ComponentWithSource extends Component {
 
 interface CatalogPageProps {
   components: ComponentWithSource[];
+  scoringEnabled?: boolean;
 }
 
-export function CatalogPage({ components: allComponents }: CatalogPageProps) {
+export function CatalogPage({ components: allComponents, scoringEnabled = true }: CatalogPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedLifecycles, setSelectedLifecycles] = useState<string[]>([]);
@@ -34,7 +35,10 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
   const filteredComponents = useMemo(() => {
     const withScores = allComponents.map((component) => ({
       component,
-      score: calculateComponentScore(component),
+      score: calculateComponentScore(component, undefined, {
+        scoringEnabled,
+        gitActivityEnabled: true,
+      }),
     }));
 
     let filtered = withScores.filter(({ component, score }) => {
@@ -54,15 +58,21 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
         selectedLifecycles.includes(component.spec.lifecycle);
 
       const matchesTier =
-        selectedTiers.length === 0 || selectedTiers.includes(score.tier);
+        !scoringEnabled || selectedTiers.length === 0 || selectedTiers.includes(score.tier);
 
       return matchesSearch && matchesType && matchesLifecycle && matchesTier;
     });
 
-    if (sortBy === 'score-high') {
-      filtered = filtered.sort((a, b) => b.score.total - a.score.total);
-    } else if (sortBy === 'score-low') {
-      filtered = filtered.sort((a, b) => a.score.total - b.score.total);
+    if (scoringEnabled) {
+      if (sortBy === 'score-high') {
+        filtered = filtered.sort((a, b) => b.score.total - a.score.total);
+      } else if (sortBy === 'score-low') {
+        filtered = filtered.sort((a, b) => a.score.total - b.score.total);
+      } else {
+        filtered = filtered.sort((a, b) =>
+          a.component.metadata.name.localeCompare(b.component.metadata.name)
+        );
+      }
     } else {
       filtered = filtered.sort((a, b) =>
         a.component.metadata.name.localeCompare(b.component.metadata.name)
@@ -70,7 +80,7 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
     }
 
     return filtered;
-  }, [allComponents, searchQuery, selectedTypes, selectedLifecycles, selectedTiers, sortBy]);
+  }, [allComponents, searchQuery, selectedTypes, selectedLifecycles, selectedTiers, sortBy, scoringEnabled]);
 
   const toggleType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -179,12 +189,13 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Quality Tier
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {(['gold', 'silver', 'bronze', 'needs-improvement'] as ScoreTier[]).map((tier) => {
+          {scoringEnabled && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quality Tier
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {(['gold', 'silver', 'bronze', 'needs-improvement'] as ScoreTier[]).map((tier) => {
                 const tierColors = {
                   gold: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
                   silver: 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
@@ -211,8 +222,9 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                   </button>
                 );
               })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -229,28 +241,32 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
               >
                 Name
               </button>
-              <button
-                onClick={() => setSortBy('score-high')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
-                  sortBy === 'score-high'
-                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-                }`}
-              >
-                <ArrowUpDown className="w-3 h-3" />
-                Score: High
-              </button>
-              <button
-                onClick={() => setSortBy('score-low')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
-                  sortBy === 'score-low'
-                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-                }`}
-              >
-                <ArrowUpDown className="w-3 h-3" />
-                Score: Low
-              </button>
+              {scoringEnabled && (
+                <>
+                  <button
+                    onClick={() => setSortBy('score-high')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                      sortBy === 'score-high'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <ArrowUpDown className="w-3 h-3" />
+                    Score: High
+                  </button>
+                  <button
+                    onClick={() => setSortBy('score-low')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                      sortBy === 'score-low'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <ArrowUpDown className="w-3 h-3" />
+                    Score: Low
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -309,7 +325,7 @@ export function CatalogPage({ components: allComponents }: CatalogPageProps) {
                     {component.metadata.name}
                   </h3>
                   <div className="flex items-center gap-2">
-                    <ScoreBadge score={score} size="sm" />
+                    {scoringEnabled && <ScoreBadge score={score} size="sm" />}
                     {source === 'github' && (
                       <div className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-400">
                         <Github className="w-3 h-3" />
