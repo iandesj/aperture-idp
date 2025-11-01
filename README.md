@@ -6,6 +6,7 @@ An extensible Internal Developer Portal built with Next.js, focused on software 
 
 ## Features
 
+- **Authentication**: Username/password authentication with NextAuth.js (ready for OAuth2)
 - **Software Catalog**: Manage and discover software components using Backstage-compatible YAML definitions
 - **GitHub Integration**: Automatically import catalog files from GitHub repositories
 - **GitLab Integration**: Automatically import catalog files from GitLab projects
@@ -29,15 +30,39 @@ An extensible Internal Developer Portal built with Next.js, focused on software 
 npm install
 ```
 
-### 2. Run the Development Server
+### 2. Configure Authentication
+
+Copy `.env.example` to `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Generate a secret for authentication:
+
+```bash
+openssl rand -base64 32
+```
+
+Add it to `.env.local`:
+
+```bash
+AUTH_SECRET=your-generated-secret-here
+```
+
+### 3. Create Your First User
+
+The database will be automatically created when you first run the application. You can create a user programmatically or add a script. For now, you'll need to manually create a user in the database. A user management UI can be added later.
+
+### 4. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Open [http://localhost:3000](http://localhost:3000) to view the application. You'll be redirected to the login page if not authenticated.
 
-### 3. Add Components to the Catalog
+### 5. Add Components to the Catalog
 
 Add new component definitions in the `catalog-data/` directory using Backstage-compatible YAML format:
 

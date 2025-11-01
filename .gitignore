@@ -44,3 +44,9 @@ next-env.d.ts
 # aperture
 /.aperture/
 src/lib/aperture.config.ts
+
+# database
+/data/
+*.db
+*.db-shm
+*.db-wal

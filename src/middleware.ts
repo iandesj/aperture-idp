@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth-middleware';
 
 export default auth((req) => {
   // The auth function handles authentication checks
