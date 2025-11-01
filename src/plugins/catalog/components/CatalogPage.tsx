@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Component } from "../types";
 import { Search, X, Github, HardDrive, GitlabIcon as Gitlab, ArrowUpDown, LayoutGrid, List } from "lucide-react";
@@ -24,16 +24,15 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
   const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
   const [selectedTiers, setSelectedTiers] = useState<ScoreTier[]>([]);
   const [sortBy, setSortBy] = useState<'name' | 'score-high' | 'score-low'>('name');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-    const savedViewMode = localStorage.getItem('catalog-view-mode');
-    if (savedViewMode === 'grid' || savedViewMode === 'list') {
-      setViewMode(savedViewMode);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('catalog-view-mode');
+      if (saved === 'grid' || saved === 'list') {
+        return saved;
+      }
     }
-  }, []);
+    return 'grid';
+  });
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
