@@ -50,3 +50,6 @@ src/lib/aperture.config.ts
 *.db
 *.db-shm
 *.db-wal
+
+# Cursor IDE
+.cursor/
