@@ -27,5 +27,7 @@ db.exec(`
   )
 `);
 
+// Token blacklist table is created in token-blacklist.ts
+
 export default db;
 

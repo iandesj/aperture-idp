@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import { importFromGitHub } from '@/lib/github/importer';
 import { importFromGitLab } from '@/lib/gitlab/importer';
 import { importStore } from '@/lib/import/store';
@@ -13,6 +14,15 @@ type ImportResultLike = {
 };
 
 export async function POST() {
+  // Check authentication
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
   try {
     const results = {
       github: null as ImportResultLike | null,
@@ -79,6 +89,15 @@ export async function POST() {
 }
 
 export async function GET() {
+  // Check authentication
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
   try {
     const stats = importStore.getStats();
     return NextResponse.json({

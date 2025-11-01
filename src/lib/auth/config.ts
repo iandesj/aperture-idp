@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { verifyUser } from './users';
+import { generateTokenId, isTokenBlacklisted } from './token-blacklist';
 
 export const authConfig = {
   trustHost: true,
@@ -61,14 +62,46 @@ export const authConfig = {
       return true;
     },
     async jwt({ token, user }) {
+      // Initialize token ID on first creation
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.jti = generateTokenId();
       }
+
+      // Check if token is blacklisted using the stored jti
+      if (token.jti && isTokenBlacklisted(token.jti)) {
+        throw new Error('Token has been revoked');
+      }
+
+      // Also check by user ID pattern (for fallback blacklisting)
+      if (token.id) {
+        const userId = parseInt(token.id as string);
+        const userPatternJti = `user-${userId}-all`;
+        if (isTokenBlacklisted(userPatternJti)) {
+          throw new Error('User tokens have been revoked');
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      // Check if token is blacklisted before creating session
+      if (token.jti && isTokenBlacklisted(token.jti)) {
+        // Throw error to prevent session creation
+        throw new Error('Token has been revoked');
+      }
+
+      // Also check user pattern
+      if (token.id) {
+        const userId = parseInt(token.id as string);
+        const userPatternJti = `user-${userId}-all`;
+        if (isTokenBlacklisted(userPatternJti)) {
+          throw new Error('User tokens have been revoked');
+        }
+      }
+
       if (token && session.user) {
         session.user.id = token.id as string;
       }

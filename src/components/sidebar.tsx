@@ -17,7 +17,20 @@ export function Sidebar() {
             <span className="truncate">{session.user.name || session.user.email}</span>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
+            onClick={async () => {
+              // Invalidate the token before signing out
+              try {
+                await fetch('/api/auth/invalidate-token', {
+                  method: 'POST',
+                  credentials: 'include',
+                });
+              } catch (error) {
+                // Continue with signout even if invalidation fails
+                console.error('Failed to invalidate token:', error);
+              }
+              // Always sign out regardless of invalidation result
+              await signOut({ callbackUrl: '/login' });
+            }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             <LogOut className="w-4 h-4" />
