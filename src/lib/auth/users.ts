@@ -6,6 +6,7 @@ export interface User {
   username: string;
   email: string;
   password_hash: string;
+  role: 'user' | 'admin';
   created_at: string;
 }
 
@@ -25,8 +26,8 @@ export async function createUser(
   const passwordHash = await bcrypt.hash(password, 10);
 
   const result = db
-    .prepare('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)')
-    .run(username, email, passwordHash);
+    .prepare('INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)')
+    .run(username, email, passwordHash, 'user');
 
   return getUserById(result.lastInsertRowid as number);
 }

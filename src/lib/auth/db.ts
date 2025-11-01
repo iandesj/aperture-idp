@@ -23,6 +23,7 @@ db.exec(`
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    role TEXT DEFAULT 'user' CHECK(role IN ('user', 'admin')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
