@@ -3,6 +3,19 @@ import Credentials from 'next-auth/providers/credentials';
 import { verifyUser } from './users';
 import { generateTokenId, isTokenBlacklisted, clearUserTokenBlacklist } from './token-blacklist';
 
+// Validate AUTH_SECRET at startup
+if (!process.env.AUTH_SECRET) {
+  throw new Error(
+    'AUTH_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+  );
+}
+
+if (process.env.AUTH_SECRET.length < 32) {
+  throw new Error(
+    'AUTH_SECRET must be at least 32 characters long for security. Generate a new one with: openssl rand -base64 32'
+  );
+}
+
 export const authConfig = {
   trustHost: true,
   providers: [
