@@ -21,6 +21,7 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedLifecycles, setSelectedLifecycles] = useState<string[]>([]);
+  const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
   const [selectedTiers, setSelectedTiers] = useState<ScoreTier[]>([]);
   const [sortBy, setSortBy] = useState<'name' | 'score-high' | 'score-low'>('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
@@ -44,6 +45,10 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
 
   const availableLifecycles = useMemo(() => {
     return Array.from(new Set(allComponents.map((c) => c.spec.lifecycle))).sort();
+  }, [allComponents]);
+
+  const availableOwners = useMemo(() => {
+    return Array.from(new Set(allComponents.map((c) => c.spec.owner))).sort();
   }, [allComponents]);
 
   const filteredComponents = useMemo(() => {
@@ -71,10 +76,13 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
         selectedLifecycles.length === 0 ||
         selectedLifecycles.includes(component.spec.lifecycle);
 
+      const matchesOwner =
+        selectedOwners.length === 0 || selectedOwners.includes(component.spec.owner);
+
       const matchesTier =
         !scoringEnabled || selectedTiers.length === 0 || selectedTiers.includes(score.tier);
 
-      return matchesSearch && matchesType && matchesLifecycle && matchesTier;
+      return matchesSearch && matchesType && matchesLifecycle && matchesOwner && matchesTier;
     });
 
     if (scoringEnabled) {
@@ -94,7 +102,7 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
     }
 
     return filtered;
-  }, [allComponents, searchQuery, selectedTypes, selectedLifecycles, selectedTiers, sortBy, scoringEnabled]);
+  }, [allComponents, searchQuery, selectedTypes, selectedLifecycles, selectedOwners, selectedTiers, sortBy, scoringEnabled]);
 
   const toggleType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -108,6 +116,12 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
     );
   };
 
+  const toggleOwner = (owner: string) => {
+    setSelectedOwners((prev) =>
+      prev.includes(owner) ? prev.filter((o) => o !== owner) : [...prev, owner]
+    );
+  };
+
   const toggleTier = (tier: ScoreTier) => {
     setSelectedTiers((prev) =>
       prev.includes(tier) ? prev.filter((t) => t !== tier) : [...prev, tier]
@@ -118,12 +132,13 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
     setSearchQuery("");
     setSelectedTypes([]);
     setSelectedLifecycles([]);
+    setSelectedOwners([]);
     setSelectedTiers([]);
     setSortBy('name');
   };
 
   const hasActiveFilters =
-    searchQuery !== "" || selectedTypes.length > 0 || selectedLifecycles.length > 0 || selectedTiers.length > 0 || sortBy !== 'name';
+    searchQuery !== "" || selectedTypes.length > 0 || selectedLifecycles.length > 0 || selectedOwners.length > 0 || selectedTiers.length > 0 || sortBy !== 'name';
 
   const lifecycleColors: Record<string, string> = {
     production: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -224,6 +239,27 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
                   }`}
                 >
                   {lifecycle}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Owner
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {availableOwners.map((owner) => (
+                <button
+                  key={owner}
+                  onClick={() => toggleOwner(owner)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    selectedOwners.includes(owner)
+                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {owner}
                 </button>
               ))}
             </div>
