@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { getUserByUsername } from '@/lib/auth/users';
 import { featuresStore, FeatureFlag } from '@/lib/features/store';
 
 export async function GET() {
@@ -21,6 +22,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
+    );
+  }
+
+  // Check if user is admin
+  const user = getUserByUsername(session.user.name as string);
+  if (!user || user.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'Forbidden: Admin access required' },
+      { status: 403 }
     );
   }
 
