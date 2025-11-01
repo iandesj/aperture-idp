@@ -6,6 +6,7 @@ import { DependencyGraph } from "@/components/DependencyGraph";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateComponentScore, getImprovementSuggestions } from "@/lib/scoring";
 import { getActivityMetrics } from "@/lib/git-activity/service";
+import { getDaysSinceLastCommit } from "@/lib/git-activity/types";
 import { featuresStore } from "@/lib/features/store";
 import { HideButton } from "./HideButton";
 import { normalizeGroupRef, getGroupByRef } from "@/lib/groups";
@@ -346,22 +347,30 @@ export default async function ComponentDetailPage({
         </div>
       )}
 
-      {gitActivityEnabled && activityMetrics && score.details.activity && (
+      {gitActivityEnabled && activityMetrics && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 mb-6">
             <Activity className="w-5 h-5 text-gray-900 dark:text-gray-100" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Repository Activity
             </h2>
-            <span className={`ml-auto px-2.5 py-1 rounded text-xs font-medium ${
-              score.details.activity.isStale
-                ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                : score.details.activity.lastCommitDaysAgo !== null && score.details.activity.lastCommitDaysAgo < 30
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-            }`}>
-              {score.details.activity.isStale ? 'Stale' : score.details.activity.lastCommitDaysAgo !== null && score.details.activity.lastCommitDaysAgo < 30 ? 'Active' : 'Moderate'}
-            </span>
+            {(() => {
+              const daysSinceLastCommit = getDaysSinceLastCommit(activityMetrics.lastCommitDate);
+              const isStale = daysSinceLastCommit !== null && daysSinceLastCommit > 90;
+              const isActive = daysSinceLastCommit !== null && daysSinceLastCommit < 30;
+              
+              return (
+                <span className={`ml-auto px-2.5 py-1 rounded text-xs font-medium ${
+                  isStale
+                    ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                    : isActive
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                }`}>
+                  {isStale ? 'Stale' : isActive ? 'Active' : 'Moderate'}
+                </span>
+              );
+            })()}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
@@ -370,15 +379,15 @@ export default async function ComponentDetailPage({
                 Last Commit
               </div>
               <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {score.details.activity.lastCommitDaysAgo !== null ? (
-                  score.details.activity.lastCommitDaysAgo === 0
-                    ? 'Today'
-                    : score.details.activity.lastCommitDaysAgo === 1
-                    ? '1 day ago'
-                    : `${score.details.activity.lastCommitDaysAgo} days ago`
-                ) : (
-                  <span className="text-gray-500 dark:text-gray-400">No commits found</span>
-                )}
+                {(() => {
+                  const daysAgo = getDaysSinceLastCommit(activityMetrics.lastCommitDate);
+                  if (daysAgo === null) {
+                    return <span className="text-gray-500 dark:text-gray-400">No commits found</span>;
+                  }
+                  if (daysAgo === 0) return 'Today';
+                  if (daysAgo === 1) return '1 day ago';
+                  return `${daysAgo} days ago`;
+                })()}
               </div>
             </div>
             <div>
@@ -387,7 +396,7 @@ export default async function ComponentDetailPage({
                 Open Issues
               </div>
               <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {score.details.activity.openIssuesCount}
+                {activityMetrics.openIssuesCount}
               </div>
             </div>
             <div>
@@ -396,7 +405,7 @@ export default async function ComponentDetailPage({
                 Open {activityMetrics.source === 'github' ? 'Pull Requests' : 'Merge Requests'}
               </div>
               <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {score.details.activity.openPullRequestsCount}
+                {activityMetrics.openPullRequestsCount}
               </div>
             </div>
           </div>
