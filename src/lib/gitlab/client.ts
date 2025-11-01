@@ -105,6 +105,7 @@ export class GitLabClient {
       );
 
       const content = await response.text();
+      // Note: js-yaml v4+ loads safely by default without custom schemas
       const parsed = yaml.load(content) as Component;
 
       if (parsed.kind === 'Component') {

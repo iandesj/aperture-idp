@@ -20,6 +20,7 @@ export function getLocalComponents(includeHidden: boolean = false): Component[] 
     const fileContents = fs.readFileSync(fullPath, "utf8");
 
     // Prefer multi-doc only when separators are present to preserve tests mocking yaml.load
+    // Note: js-yaml v4+ loads safely by default without custom schemas
     if (/\n---\n/.test(fileContents)) {
       try {
         const docs: unknown[] = [];

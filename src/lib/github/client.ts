@@ -152,6 +152,7 @@ export class GitHubClient {
       }
 
       const yamlContent = await contentResponse.text();
+      // Note: js-yaml v4+ loads safely by default without custom schemas
       const component = yaml.load(yamlContent) as Component;
 
       // Validate basic structure
