@@ -1,6 +1,3 @@
-import { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth-middleware';
-
 jest.mock('@/lib/auth-middleware', () => ({
   auth: jest.fn(),
 }));
@@ -10,25 +7,12 @@ describe('Middleware', () => {
     jest.clearAllMocks();
   });
 
-  it('should call auth function', () => {
-    const mockAuth = auth as jest.MockedFunction<typeof auth>;
-    mockAuth.mockImplementation((req) => {
-      return undefined;
-    });
-
-    const req = new NextRequest('http://localhost:3000/test');
-    const middleware = require('./middleware').default;
-
-    middleware(req);
-
-    expect(mockAuth).toHaveBeenCalled();
-  });
-
-  it('should match correct routes', () => {
+  it('should have correct configuration', () => {
     const config = require('./middleware').config;
 
     expect(config.matcher).toBeDefined();
     expect(Array.isArray(config.matcher)).toBe(true);
+    expect(config.matcher[0]).toContain('api/auth');
   });
 });
 

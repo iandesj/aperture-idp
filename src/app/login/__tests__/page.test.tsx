@@ -8,6 +8,15 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+jest.mock('@/lib/auth', () => ({
+  auth: jest.fn(),
+}));
+
+jest.mock('next-auth/react', () => ({
+  signIn: jest.fn(),
+  useSession: () => ({ data: null, status: 'unauthenticated' }),
+}));
+
 describe('LoginPage', () => {
   it('should render login form', () => {
     render(<LoginPage />);

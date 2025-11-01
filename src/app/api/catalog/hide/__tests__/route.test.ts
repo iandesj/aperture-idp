@@ -15,6 +15,10 @@ jest.mock('@/lib/hidden/store', () => ({
   },
 }));
 
+jest.mock('@/lib/auth', () => ({
+  auth: jest.fn(),
+}));
+
 jest.mock('@/lib/catalog', () => ({
   getComponentByName: jest.fn(),
 }));
@@ -22,9 +26,15 @@ jest.mock('@/lib/catalog', () => ({
 const mockHiddenStore = hiddenStore as jest.Mocked<typeof hiddenStore>;
 const mockGetComponentByName = getComponentByName as jest.MockedFunction<typeof getComponentByName>;
 
+import { auth } from '@/lib/auth';
+const mockAuth = auth as jest.MockedFunction<typeof auth>;
+
 describe('/api/catalog/hide', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuth.mockResolvedValue({
+      user: { id: '1', name: 'test', email: 'test@example.com' },
+    } as any);
   });
 
   describe('POST', () => {

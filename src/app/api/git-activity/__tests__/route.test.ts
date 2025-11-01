@@ -6,6 +6,10 @@ import { getComponentByName } from '@/lib/catalog';
 import { getActivityMetrics } from '@/lib/git-activity/service';
 import { NextRequest } from 'next/server';
 
+jest.mock('@/lib/auth', () => ({
+  auth: jest.fn(),
+}));
+
 jest.mock('@/lib/catalog', () => ({
   getComponentByName: jest.fn(),
 }));
@@ -17,9 +21,15 @@ jest.mock('@/lib/git-activity/service', () => ({
 const mockGetComponentByName = getComponentByName as jest.MockedFunction<typeof getComponentByName>;
 const mockGetActivityMetrics = getActivityMetrics as jest.MockedFunction<typeof getActivityMetrics>;
 
+import { auth } from '@/lib/auth';
+const mockAuth = auth as jest.MockedFunction<typeof auth>;
+
 describe('/api/git-activity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuth.mockResolvedValue({
+      user: { id: '1', name: 'test', email: 'test@example.com' },
+    } as any);
   });
 
   describe('GET', () => {
