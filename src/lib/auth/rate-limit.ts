@@ -1,53 +1,59 @@
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+}
 
-// Simple in-memory Redis mock for development
-class MockRedis {
-  private store = new Map<string, string>();
+class InMemoryRateLimiter {
+  private store = new Map<string, RateLimitEntry>();
+  private maxRequests: number;
+  private windowMs: number;
 
-  async get(key: string): Promise<string | null> {
-    return this.store.get(key) || null;
+  constructor(maxRequests: number, windowMinutes: number) {
+    this.maxRequests = maxRequests;
+    this.windowMs = windowMinutes * 60 * 1000;
   }
 
-  async set(key: string, value: string, options?: { ex?: number }): Promise<string> {
-    this.store.set(key, value);
-    if (options?.ex) {
-      setTimeout(() => this.store.delete(key), options.ex * 1000);
+  async limit(identifier: string): Promise<{ success: boolean }> {
+    const now = Date.now();
+    const entry = this.store.get(identifier);
+
+    // Clean up expired entries
+    if (entry && now >= entry.resetTime) {
+      this.store.delete(identifier);
     }
-    return 'OK';
+
+    const current = this.store.get(identifier) || { count: 0, resetTime: now + this.windowMs };
+
+    if (current.count >= this.maxRequests) {
+      return { success: false };
+    }
+
+    current.count++;
+    this.store.set(identifier, current);
+
+    // Cleanup old entries periodically
+    if (Math.random() < 0.01) {
+      this.cleanup(now);
+    }
+
+    return { success: true };
+  }
+
+  private cleanup(now: number): void {
+    for (const [key, entry] of this.store.entries()) {
+      if (now >= entry.resetTime) {
+        this.store.delete(key);
+      }
+    }
   }
 }
 
-// Create Redis client - use real Redis in production, mock in development
-const hasRedisConfig = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-const redis = hasRedisConfig
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    })
-  : (new MockRedis() as unknown as Redis);
-
 // Rate limiter for authentication endpoints (5 requests per 15 minutes)
-export const authRateLimit = new Ratelimit({
-  redis: redis,
-  limiter: Ratelimit.slidingWindow(5, '15 m'),
-  analytics: hasRedisConfig, // Only enable analytics in production with real Redis
-  ephemeralCache: new Map(),
-});
+export const authRateLimit = new InMemoryRateLimiter(5, 15);
 
 // Rate limiter for API endpoints (30 requests per minute)
-export const apiRateLimit = new Ratelimit({
-  redis: redis,
-  limiter: Ratelimit.slidingWindow(30, '1 m'),
-  analytics: hasRedisConfig, // Only enable analytics in production with real Redis
-  ephemeralCache: new Map(),
-});
+export const apiRateLimit = new InMemoryRateLimiter(30, 1);
 
 // Rate limiter for user creation (3 requests per hour per IP)
-export const createUserRateLimit = new Ratelimit({
-  redis: redis,
-  limiter: Ratelimit.slidingWindow(3, '1 h'),
-  analytics: hasRedisConfig, // Only enable analytics in production with real Redis
-  ephemeralCache: new Map(),
-});
+export const createUserRateLimit = new InMemoryRateLimiter(3, 60);
 
