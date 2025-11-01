@@ -245,23 +245,46 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="owner-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Owner
             </label>
-            <div className="flex flex-wrap gap-2">
-              {availableOwners.map((owner) => (
-                <button
-                  key={owner}
-                  onClick={() => toggleOwner(owner)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    selectedOwners.includes(owner)
-                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {owner}
-                </button>
-              ))}
+            <div className="relative">
+              <select
+                id="owner-select"
+                multiple
+                value={selectedOwners}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, option => option.value);
+                  setSelectedOwners(selected);
+                }}
+                className="w-full min-w-[200px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+                size={Math.min(availableOwners.length, 8)}
+              >
+                {availableOwners.map((owner) => (
+                  <option key={owner} value={owner}>
+                    {owner}
+                  </option>
+                ))}
+              </select>
+              {selectedOwners.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedOwners.map((owner) => (
+                    <span
+                      key={owner}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs font-medium"
+                    >
+                      {owner}
+                      <button
+                        onClick={() => toggleOwner(owner)}
+                        className="hover:text-blue-600 dark:hover:text-blue-300"
+                        aria-label={`Remove ${owner}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
