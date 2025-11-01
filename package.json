@@ -13,8 +13,6 @@
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@upstash/ratelimit": "^2.0.6",
-    "@upstash/redis": "^1.35.6",
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "^12.4.1",
     "js-yaml": "^4.1.0",
