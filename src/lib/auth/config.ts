@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { verifyUser } from './users';
 
 export const authConfig = {
+  trustHost: true,
   providers: [
     Credentials({
       name: 'Credentials',
