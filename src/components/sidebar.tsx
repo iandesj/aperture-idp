@@ -1,15 +1,20 @@
+'use client';
+
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { getPlugins } from "@/lib/plugins";
+import { LogOut, User } from "lucide-react";
 
 export function Sidebar() {
+  const { data: session } = useSession();
   const plugins = getPlugins();
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+    <aside className="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col">
       <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-gray-100">
         Aperture
       </Link>
-      <nav className="mt-8">
+      <nav className="mt-8 flex-1">
         <div className="mb-6">
           <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
             Navigation
@@ -66,6 +71,21 @@ export function Sidebar() {
           </ul>
         </div>
       </nav>
+      {session?.user && (
+        <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 mb-3 text-sm text-gray-700 dark:text-gray-300">
+            <User className="w-4 h-4" />
+            <span className="truncate">{session.user.name || session.user.email}</span>
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign out
+          </button>
+        </div>
+      )}
     </aside>
   );
 }
