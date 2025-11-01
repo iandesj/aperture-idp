@@ -23,7 +23,20 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
   const [selectedLifecycles, setSelectedLifecycles] = useState<string[]>([]);
   const [selectedTiers, setSelectedTiers] = useState<ScoreTier[]>([]);
   const [sortBy, setSortBy] = useState<'name' | 'score-high' | 'score-low'>('name');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedViewMode = localStorage.getItem('catalog-view-mode');
+      if (savedViewMode === 'grid' || savedViewMode === 'list') {
+        return savedViewMode;
+      }
+    }
+    return 'grid';
+  });
+
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    localStorage.setItem('catalog-view-mode', mode);
+  };
 
   const availableTypes = useMemo(() => {
     return Array.from(new Set(allComponents.map((c) => c.spec.type))).sort();
@@ -137,7 +150,7 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
         </div>
         <div className="flex gap-2 border border-gray-300 dark:border-gray-600 rounded-lg p-1">
           <button
-            onClick={() => setViewMode('grid')}
+            onClick={() => handleViewModeChange('grid')}
             className={`p-2 rounded transition-colors ${
               viewMode === 'grid'
                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
@@ -148,7 +161,7 @@ export function CatalogPage({ components: allComponents, scoringEnabled = true }
             <LayoutGrid className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setViewMode('list')}
+            onClick={() => handleViewModeChange('list')}
             className={`p-2 rounded transition-colors ${
               viewMode === 'list'
                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
