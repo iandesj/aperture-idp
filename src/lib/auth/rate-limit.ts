@@ -15,21 +15,25 @@ class InMemoryRateLimiter {
 
   async limit(identifier: string): Promise<{ success: boolean }> {
     const now = Date.now();
-    const entry = this.store.get(identifier);
+    let entry = this.store.get(identifier);
 
     // Clean up expired entries
     if (entry && now >= entry.resetTime) {
       this.store.delete(identifier);
+      entry = undefined;
     }
 
-    const current = this.store.get(identifier) || { count: 0, resetTime: now + this.windowMs };
+    // Create new entry if it doesn't exist
+    if (!entry) {
+      entry = { count: 0, resetTime: now + this.windowMs };
+    }
 
-    if (current.count >= this.maxRequests) {
+    if (entry.count >= this.maxRequests) {
       return { success: false };
     }
 
-    current.count++;
-    this.store.set(identifier, current);
+    entry.count++;
+    this.store.set(identifier, entry);
 
     // Cleanup old entries periodically
     if (Math.random() < 0.01) {
